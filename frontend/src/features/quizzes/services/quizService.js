@@ -55,6 +55,11 @@ const quizService = {
   getQuizStats: async (config) => {
     const response = await api.get("/quizzes/stats", config);
     return response.data.data;
+  },
+
+  getStudentQuizStats: async (studentId, config) => {
+    const response = await api.get(`/quizzes/student/${studentId}/stats`, config);
+    return response.data.data;
   }
 };
 

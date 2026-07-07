@@ -37,6 +37,21 @@ public class Quiz {
     @CollectionTable(name = "quiz_questions", joinColumns = @JoinColumn(name = "quiz_id"))
     private List<QuizQuestion> questions = new ArrayList<>();
 
+    @Transient
+    private String attemptStatus;
+
+    @Transient
+    private Integer score;
+
+    @Transient
+    private Integer percentage;
+
+    @Transient
+    private String verdict;
+
+    @Transient
+    private String attemptDate;
+
     public Quiz() {}
 
     public String getId() {
@@ -158,5 +173,45 @@ public class Quiz {
     public void setQuestions(List<QuizQuestion> questions) {
         this.questions = questions;
         this.questionsCount = questions != null ? questions.size() : 0;
+    }
+
+    public String getAttemptStatus() {
+        return attemptStatus;
+    }
+
+    public void setAttemptStatus(String attemptStatus) {
+        this.attemptStatus = attemptStatus;
+    }
+
+    public Integer getScore() {
+        return score;
+    }
+
+    public void setScore(Integer score) {
+        this.score = score;
+    }
+
+    public Integer getPercentage() {
+        return percentage;
+    }
+
+    public void setPercentage(Integer percentage) {
+        this.percentage = percentage;
+    }
+
+    public String getVerdict() {
+        return verdict;
+    }
+
+    public void setVerdict(String verdict) {
+        this.verdict = verdict;
+    }
+
+    public String getAttemptDate() {
+        return attemptDate;
+    }
+
+    public void setAttemptDate(String attemptDate) {
+        this.attemptDate = attemptDate;
     }
 }

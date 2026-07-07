@@ -308,7 +308,7 @@ public class QuizService {
         Student student = studentOpt.get();
         List<Quiz> allQuizzes = quizRepository.findAll();
         
-        return allQuizzes.stream()
+        List<Quiz> filtered = allQuizzes.stream()
                 .filter(quiz -> {
                     // Check status is Published
                     if (!"Published".equalsIgnoreCase(quiz.getStatus())) {
@@ -338,5 +338,25 @@ public class QuizService {
                     return false;
                 })
                 .collect(Collectors.toList());
+
+        for (Quiz q : filtered) {
+            Optional<QuizAttempt> attemptOpt = quizAttemptRepository.findByQuizIdAndStudentId(q.getId(), studentId);
+            if (attemptOpt.isPresent()) {
+                QuizAttempt attempt = attemptOpt.get();
+                q.setAttemptStatus("Completed");
+                q.setScore(attempt.getScore());
+                q.setPercentage(attempt.getPercentage());
+                q.setVerdict(attempt.getStatus());
+                q.setAttemptDate(attempt.getAttemptDate());
+            } else {
+                q.setAttemptStatus("Pending");
+                q.setScore(null);
+                q.setPercentage(0);
+                q.setVerdict(null);
+                q.setAttemptDate(null);
+            }
+        }
+
+        return filtered;
     }
 }

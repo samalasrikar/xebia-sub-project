@@ -23,6 +23,7 @@ export default function Gradebook() {
   const navigate = useNavigate();
   const [submissions, setSubmissions] = useState([]);
   const [batches, setBatches] = useState([]);
+  const [stats, setStats] = useState({ total: 0, pending: 0, average: "N/A" });
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBatch, setSelectedBatch] = useState("All Batches");
   const [selectedStatus, setSelectedStatus] = useState("All Statuses");
@@ -31,18 +32,10 @@ export default function Gradebook() {
   useEffect(() => {
     assignmentService.getSubmissions().then(data => setSubmissions(data || []));
     assignmentService.getBatches().then(data => setBatches(data || []));
+    assignmentService.getGradebookStats().then(data => {
+      if (data) setStats(data);
+    });
   }, []);
-
-  // Compute Stats
-  const stats = useMemo(() => {
-    const total = submissions.length;
-    const pending = submissions.filter(s => s.status === "Submitted" || s.status === "Pending").length;
-    const graded = submissions.filter(s => s.status === "Graded" && s.score !== null);
-    const average = graded.length > 0
-      ? Math.round(graded.reduce((sum, s) => sum + s.score, 0) / graded.length) + "%"
-      : "N/A";
-    return { total, pending, average };
-  }, [submissions]);
 
   const handleExport = useCallback(() => {
     const headers = ["Student", "Batch", "Assignment", "Marks", "Status", "Date"];

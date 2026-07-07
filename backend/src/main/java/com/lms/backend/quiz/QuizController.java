@@ -34,6 +34,31 @@ public class QuizController {
         return new ApiResponse<>(quizService.getQuizStats());
     }
 
+    @GetMapping("/student/{studentId}/stats")
+    public ApiResponse<java.util.Map<String, Object>> getStudentQuizStats(@PathVariable String studentId) {
+        List<Quiz> quizzes = quizService.getQuizzesForStudent(studentId);
+        long assigned = quizzes.size();
+        long completed = quizzes.stream().filter(q -> "Completed".equalsIgnoreCase(q.getAttemptStatus())).count();
+        long pending = assigned - completed;
+
+        List<Quiz> completedQuizzes = quizzes.stream()
+                .filter(q -> "Completed".equalsIgnoreCase(q.getAttemptStatus()) && q.getPercentage() != null)
+                .collect(Collectors.toList());
+
+        long averageScore = 0;
+        if (!completedQuizzes.isEmpty()) {
+            double sum = completedQuizzes.stream().mapToDouble(Quiz::getPercentage).sum();
+            averageScore = Math.round(sum / completedQuizzes.size());
+        }
+
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+        stats.put("assigned", assigned);
+        stats.put("completed", completed);
+        stats.put("pending", pending);
+        stats.put("averageScore", averageScore);
+        return new ApiResponse<>(stats);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<Quiz>> getQuizById(@PathVariable String id) {
         return quizService.getQuizById(id)

@@ -2,6 +2,8 @@ package com.lms.backend.assignment;
 
 import com.lms.backend.student.Student;
 import com.lms.backend.student.StudentRepository;
+import com.lms.backend.submission.Submission;
+import com.lms.backend.submission.SubmissionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,9 @@ public class AssignmentService {
     @Autowired
     private StudentRepository studentRepository;
 
+    @Autowired
+    private SubmissionRepository submissionRepository;
+
     public List<Assignment> getAllAssignments() {
         return assignmentRepository.findAll();
     }
@@ -34,7 +39,7 @@ public class AssignmentService {
         Student student = studentOpt.get();
         List<Assignment> allAssignments = assignmentRepository.findAll();
         
-        return allAssignments.stream()
+        List<Assignment> assigned = allAssignments.stream()
                 .filter(assignment -> {
                     String scope = assignment.getScope();
                     if (scope == null || scope.trim().isEmpty() || scope.equalsIgnoreCase("Entire Course")) {
@@ -58,6 +63,36 @@ public class AssignmentService {
                     
                     return false;
                 })
+                .collect(Collectors.toList());
+
+        for (Assignment a : assigned) {
+            Optional<Submission> subOpt = submissionRepository.findByStudentIdAndAssignmentId(studentId, a.getId());
+            if (subOpt.isPresent()) {
+                Submission sub = subOpt.get();
+                a.setSubmissionId(sub.getId());
+                if ("Graded".equalsIgnoreCase(sub.getStatus())) {
+                    a.setDisplayStatus("Reviewed");
+                    a.setScore(sub.getScore());
+                } else if ("Submitted".equalsIgnoreCase(sub.getStatus())) {
+                    a.setDisplayStatus("Submitted");
+                } else if ("Revision Needed".equalsIgnoreCase(sub.getStatus())) {
+                    a.setDisplayStatus("Needs Revision");
+                } else {
+                    a.setDisplayStatus("Submitted");
+                }
+            } else {
+                if ("a5".equalsIgnoreCase(a.getId())) {
+                    a.setDisplayStatus("Overdue");
+                } else if ("Active".equalsIgnoreCase(a.getStatus()) || "Pending".equalsIgnoreCase(a.getStatus())) {
+                    a.setDisplayStatus("Pending");
+                } else {
+                    a.setDisplayStatus(a.getStatus());
+                }
+            }
+        }
+
+        return assigned.stream()
+                .filter(a -> !"Draft".equalsIgnoreCase(a.getStatus()))
                 .collect(Collectors.toList());
     }
 

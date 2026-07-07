@@ -52,6 +52,15 @@ public class Assignment {
     @Column(name = "submission_formats")
     private String submissionFormats;
 
+    @Transient
+    private String displayStatus;
+
+    @Transient
+    private Integer score;
+
+    @Transient
+    private String submissionId;
+
     public Assignment() {}
 
     public String getId() {
@@ -187,5 +196,29 @@ public class Assignment {
         } else {
             this.submissionFormats = String.join(",", formats);
         }
+    }
+
+    public String getDisplayStatus() {
+        return displayStatus;
+    }
+
+    public void setDisplayStatus(String displayStatus) {
+        this.displayStatus = displayStatus;
+    }
+
+    public Integer getScore() {
+        return score;
+    }
+
+    public void setScore(Integer score) {
+        this.score = score;
+    }
+
+    public String getSubmissionId() {
+        return submissionId;
+    }
+
+    public void setSubmissionId(String submissionId) {
+        this.submissionId = submissionId;
     }
 }

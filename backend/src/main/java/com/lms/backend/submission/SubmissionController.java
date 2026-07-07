@@ -19,6 +19,11 @@ public class SubmissionController {
         return new ApiResponse<>(submissionService.getAllSubmissions());
     }
 
+    @GetMapping("/submissions/stats")
+    public ApiResponse<java.util.Map<String, Object>> getGradebookStats() {
+        return new ApiResponse<>(submissionService.getGradebookStats());
+    }
+
     @GetMapping("/submissions/{id}")
     public ResponseEntity<ApiResponse<Submission>> getSubmissionById(@PathVariable String id) {
         return submissionService.getSubmissionById(id)

@@ -52,4 +52,20 @@ public class AssignmentController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
+
+    @GetMapping("/student/{studentId}/stats")
+    public ApiResponse<java.util.Map<String, Long>> getStudentAssignmentStats(@PathVariable String studentId) {
+        List<Assignment> assignments = assignmentService.getAssignmentsForStudent(studentId);
+        long pending = assignments.stream().filter(a -> "Pending".equalsIgnoreCase(a.getDisplayStatus()) || "Needs Revision".equalsIgnoreCase(a.getDisplayStatus())).count();
+        long submitted = assignments.stream().filter(a -> "Submitted".equalsIgnoreCase(a.getDisplayStatus())).count();
+        long reviewed = assignments.stream().filter(a -> "Reviewed".equalsIgnoreCase(a.getDisplayStatus())).count();
+        long overdue = assignments.stream().filter(a -> "Overdue".equalsIgnoreCase(a.getDisplayStatus())).count();
+
+        java.util.Map<String, Long> stats = new java.util.HashMap<>();
+        stats.put("pending", pending);
+        stats.put("submitted", submitted);
+        stats.put("reviewed", reviewed);
+        stats.put("overdue", overdue);
+        return new ApiResponse<>(stats);
+    }
 }

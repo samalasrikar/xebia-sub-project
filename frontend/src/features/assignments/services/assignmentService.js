@@ -82,6 +82,16 @@ const assignmentService = {
   createStudent: async (studentData, config) => {
     const response = await api.post("/students", studentData, config);
     return response.data.data;
+  },
+
+  getStudentAssignmentStats: async (studentId, config) => {
+    const response = await api.get(`/assignments/student/${studentId}/stats`, config);
+    return response.data.data;
+  },
+
+  getGradebookStats: async (config) => {
+    const response = await api.get("/submissions/stats", config);
+    return response.data.data;
   }
 };
 

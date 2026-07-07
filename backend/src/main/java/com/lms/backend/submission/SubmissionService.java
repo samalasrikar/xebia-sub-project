@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @SuppressWarnings("null")
@@ -149,5 +150,28 @@ public class SubmissionService {
         });
 
         return saved;
+    }
+
+    public java.util.Map<String, Object> getGradebookStats() {
+        List<Submission> submissions = submissionRepository.findAll();
+        long total = submissions.size();
+        long pending = submissions.stream()
+                .filter(s -> "Submitted".equalsIgnoreCase(s.getStatus()) || "Pending".equalsIgnoreCase(s.getStatus()))
+                .count();
+        List<Submission> graded = submissions.stream()
+                .filter(s -> "Graded".equalsIgnoreCase(s.getStatus()) && s.getScore() != null)
+                .collect(Collectors.toList());
+        
+        String average = "N/A";
+        if (!graded.isEmpty()) {
+            double avg = graded.stream().mapToInt(Submission::getScore).average().orElse(0.0);
+            average = Math.round(avg) + "%";
+        }
+
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+        stats.put("total", total);
+        stats.put("pending", pending);
+        stats.put("average", average);
+        return stats;
     }
 }

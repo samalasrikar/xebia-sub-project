@@ -9,42 +9,18 @@ export default function StudentQuizDashboard() {
   const studentBatch = "B-2024-Q1"; // Jane Doe's batch
 
   const [quizzes, setQuizzes] = useState([]);
-  const [attempts, setAttempts] = useState({});
+  const [stats, setStats] = useState({ assigned: 0, completed: 0, pending: 0, averageScore: 0 });
 
   useEffect(() => {
-    quizService.getQuizzes(studentId).then(async filtered => {
-      setQuizzes(filtered || []);
-
-      const attemptData = {};
-      const promises = (filtered || []).map(async q => {
-        try {
-          const res = await quizService.getStudentResult(q.id, studentId);
-          if (res) {
-            attemptData[q.id] = res;
-          }
-        } catch (e) {
-          // No attempt found (404)
-        }
-      });
-      await Promise.all(promises);
-      setAttempts(attemptData);
+    quizService.getQuizzes(studentId).then(data => {
+      setQuizzes(data || []);
+    });
+    quizService.getStudentQuizStats(studentId).then(data => {
+      if (data) {
+        setStats(data);
+      }
     });
   }, []);
-
-  // Compute Stats
-  const stats = useMemo(() => {
-    const assigned = quizzes.length;
-    const completed = Object.keys(attempts).length;
-    const pending = assigned - completed;
-
-    // Average score percentage
-    const attemptList = Object.values(attempts);
-    const averageScore = attemptList.length > 0
-      ? Math.round(attemptList.reduce((sum, a) => sum + a.percentage, 0) / attemptList.length)
-      : 0;
-
-    return { assigned, completed, pending, averageScore };
-  }, [quizzes, attempts]);
 
   return (
     <div className="p-4 md:p-7 xl:p-8 space-y-6">
@@ -83,8 +59,8 @@ export default function StudentQuizDashboard() {
       {/* Quizzes List Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 pt-2">
         {quizzes.map((quiz) => {
-          const attempt = attempts[quiz.id];
-          const isCompleted = !!attempt;
+          const isCompleted = quiz.attemptStatus === "Completed";
+          const attempt = quiz;
 
           return (
             <div

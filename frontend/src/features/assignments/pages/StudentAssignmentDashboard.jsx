@@ -20,73 +20,22 @@ import { Card, CardContent } from "@/shared/components/ui/card";
 
 export default function StudentAssignmentDashboard() {
   const navigate = useNavigate();
-  const [rawAssignments, setRawAssignments] = useState([]);
-  const [submissions, setSubmissions] = useState([]);
+  const [assignments, setAssignments] = useState([]);
+  const [stats, setStats] = useState({ pending: 0, submitted: 0, reviewed: 0, overdue: 0 });
   
   // Student ID hardcoded to s4 (Jane Doe) or s1 (Alex Mercer) to match designs
   const studentId = "s4";
 
   useEffect(() => {
-    // For students, let's fetch both all assignments and student's submissions to reconcile status
-    Promise.all([
-      assignmentService.getAssignments(studentId),
-      assignmentService.getStudentSubmissions(studentId)
-    ]).then(([allAs, studentSubs]) => {
-      setRawAssignments(allAs || []);
-      setSubmissions(studentSubs || []);
+    assignmentService.getAssignments(studentId).then(data => {
+      setAssignments(data || []);
+    });
+    assignmentService.getStudentAssignmentStats(studentId).then(data => {
+      if (data) {
+        setStats(data);
+      }
     });
   }, []);
-
-  // Reconcile assignments status with student submissions
-  const assignments = useMemo(() => {
-    const reconciled = rawAssignments.map(a => {
-      // Find if this student has a submission for this assignment
-      const sub = submissions.find(s => s.assignmentId === a.id);
-      
-      let displayStatus = a.status; // Default
-      let score = null;
-      let submissionId = null;
-
-      if (sub) {
-        submissionId = sub.id;
-        if (sub.status === "Graded") {
-          displayStatus = "Reviewed";
-          score = sub.score;
-        } else if (sub.status === "Submitted") {
-          displayStatus = "Submitted";
-        } else if (sub.status === "Revision Needed") {
-          displayStatus = "Needs Revision";
-        }
-      } else {
-        // Re-evaluate if overdue based on date
-        // For mockup simplicity, let's preserve the default status
-        if (a.status === "Active" || a.status === "Pending") {
-          displayStatus = "Pending";
-        }
-        if (a.id === "a5") {
-          displayStatus = "Overdue"; // Ensure hardcoded design matches
-        }
-      }
-
-      return {
-        ...a,
-        displayStatus,
-        score,
-        submissionId
-      };
-    });
-    // Filter out draft assignments (not visible to students)
-    return reconciled.filter(a => a.status !== "Draft");
-  }, [rawAssignments, submissions]);
-
-  // Compute Stats
-  const stats = useMemo(() => {
-    const pending = assignments.filter(a => a.displayStatus === "Pending" || a.displayStatus === "Needs Revision").length;
-    const submitted = assignments.filter(a => a.displayStatus === "Submitted").length;
-    const reviewed = assignments.filter(a => a.displayStatus === "Reviewed").length;
-    const overdue = assignments.filter(a => a.displayStatus === "Overdue").length;
-    return { pending, submitted, reviewed, overdue };
-  }, [assignments]);
 
   return (
     <div className="max-w-[1100px] w-full mx-auto px-6 md:px-8 py-8 space-y-6 animate-fadeIn">
