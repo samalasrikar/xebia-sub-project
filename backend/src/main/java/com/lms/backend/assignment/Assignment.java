@@ -1,7 +1,11 @@
 package com.lms.backend.assignment;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.lms.backend.submission.Submission;
+
 import jakarta.persistence.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -10,43 +14,59 @@ import java.util.List;
 @Entity
 @Table(name = "assignment")
 public class Assignment {
+
     @Id
     private String id;
+
     private String title;
+
     private String course;
-    
+
     @Column(name = "course_id")
     private String courseId;
-    
+
     private String batch;
-    
+
     @Column(name = "batch_id")
     private String batchId;
-    
+
     private String scope;
-    
+
     @Column(name = "due_date")
     private String dueDate;
-    
+
     private String status;
-    
+
     @Column(name = "max_marks")
     private Integer maxMarks;
-    
+
     private String weightage;
-    
+
     @Column(name = "attempts_allowed")
     private String attemptsAllowed;
-    
+
     @Column(length = 2000)
     private String description;
-    
+
     @Column(length = 2000)
     private String instructions;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "assignment_attachments", joinColumns = @JoinColumn(name = "assignment_id"))
-    private List<AssignmentAttachment> attachments = new ArrayList<>();
+    @CollectionTable(
+            name = "assignment_attachments",
+            joinColumns = @JoinColumn(name = "assignment_id")
+    )
+    private List<AssignmentAttachment> attachments =
+            new ArrayList<>();
+
+    @JsonManagedReference
+    @OneToMany(
+            mappedBy = "assignment",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Submission> submissions =
+            new ArrayList<>();
 
     @JsonIgnore
     @Column(name = "submission_formats")
@@ -170,22 +190,47 @@ public class Assignment {
         return attachments;
     }
 
-    public void setAttachments(List<AssignmentAttachment> attachments) {
+    public void setAttachments(
+            List<AssignmentAttachment> attachments
+    ) {
         this.attachments = attachments;
     }
 
-    public List<String> getSubmissionFormats() {
-        if (submissionFormats == null || submissionFormats.trim().isEmpty()) {
-            return Collections.emptyList();
-        }
-        return Arrays.asList(submissionFormats.split(","));
+    public List<Submission> getSubmissions() {
+        return submissions;
     }
 
-    public void setSubmissionFormats(List<String> formats) {
+    public void setSubmissions(
+            List<Submission> submissions
+    ) {
+        this.submissions = submissions;
+    }
+
+    public List<String> getSubmissionFormats() {
+
+        if (submissionFormats == null ||
+                submissionFormats.trim().isEmpty()) {
+
+            return Collections.emptyList();
+        }
+
+        return Arrays.asList(
+                submissionFormats.split(",")
+        );
+    }
+
+    public void setSubmissionFormats(
+            List<String> formats
+    ) {
+
         if (formats == null || formats.isEmpty()) {
+
             this.submissionFormats = "";
+
         } else {
-            this.submissionFormats = String.join(",", formats);
+
+            this.submissionFormats =
+                    String.join(",", formats);
         }
     }
 }
