@@ -1,20 +1,35 @@
 package com.lms.backend.submission;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.lms.backend.assignment.Assignment;
+
 import jakarta.persistence.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "submission")
 public class Submission {
+
     @Id
     private String id;
 
-    @Column(name = "assignment_id")
+    @Column(
+            name = "assignment_id",
+            insertable = false,
+            updatable = false
+    )
     private String assignmentId;
 
     @Column(name = "assignment_title")
     private String assignmentTitle;
+
+    @JsonBackReference
+    @ManyToOne
+    @JoinColumn(name = "assignment_id")
+    private Assignment assignment;
 
     @Column(name = "student_id")
     private String studentId;
@@ -53,8 +68,12 @@ public class Submission {
     @Column(name = "evaluated_date")
     private String evaluatedDate;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "submission_files", joinColumns = @JoinColumn(name = "submission_id"))
+    @JsonManagedReference
+    @OneToMany(
+            mappedBy = "submission",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<SubmissionFile> files = new ArrayList<>();
 
     public Submission() {}
@@ -81,6 +100,14 @@ public class Submission {
 
     public void setAssignmentTitle(String assignmentTitle) {
         this.assignmentTitle = assignmentTitle;
+    }
+
+    public Assignment getAssignment() {
+        return assignment;
+    }
+
+    public void setAssignment(Assignment assignment) {
+        this.assignment = assignment;
     }
 
     public String getStudentId() {

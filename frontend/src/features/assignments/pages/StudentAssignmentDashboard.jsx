@@ -18,6 +18,8 @@ export default function StudentAssignmentDashboard() {
   const navigate = useNavigate();
   const [rawAssignments, setRawAssignments] = useState([]);
   const [submissions, setSubmissions] = useState([]);
+  const [filterStatus, setFilterStatus] = useState("All");
+  const [sortOrder, setSortOrder] = useState("Newest");
   
   // Student ID hardcoded to s4 (Jane Doe) or s1 (Alex Mercer) to match designs
   const studentId = "s4";
@@ -45,11 +47,15 @@ export default function StudentAssignmentDashboard() {
 
       if (sub) {
         submissionId = sub.id;
+        console.log(sub.status);
         if (sub.status === "Graded") {
           displayStatus = "Reviewed";
           score = sub.score;
-        } else if (sub.status === "Submitted") {
-          displayStatus = "Submitted";
+        } else if (sub.status === "Late Submitted") {
+  displayStatus = "Late Submitted";
+
+} else if (sub.status === "Submitted") {
+  displayStatus = "Submitted";
         } else if (sub.status === "Revision Needed") {
           displayStatus = "Needs Revision";
         }
@@ -59,11 +65,23 @@ export default function StudentAssignmentDashboard() {
         if (a.status === "Active" || a.status === "Pending") {
           displayStatus = "Pending";
         }
-        if (a.id === "a5") {
-          displayStatus = "Overdue"; // Ensure hardcoded design matches
-        }
-      }
+        const now = new Date();
 
+const dueDate = a.dueDate
+  ? new Date(a.dueDate)
+  : null;
+
+if (dueDate) {
+  dueDate.setHours(23, 59, 59, 999);
+}
+
+if (
+  dueDate &&
+  now > dueDate
+) {
+  displayStatus = "Overdue";
+}
+      }
       return {
         ...a,
         displayStatus,
@@ -81,9 +99,35 @@ export default function StudentAssignmentDashboard() {
     const submitted = assignments.filter(a => a.displayStatus === "Submitted").length;
     const reviewed = assignments.filter(a => a.displayStatus === "Reviewed").length;
     const overdue = assignments.filter(a => a.displayStatus === "Overdue").length;
-    return { pending, submitted, reviewed, overdue };
+    const lateSubmitted = assignments.filter(
+  a => a.displayStatus === "Late Submitted"
+).length;
+    return { pending, submitted, reviewed, overdue, lateSubmitted };
   }, [assignments]);
+  const filteredAssignments = useMemo(() => {
+  let filtered = [...assignments];
 
+  // FILTER
+  if (filterStatus !== "All") {
+    filtered = filtered.filter(
+      a => a.displayStatus === filterStatus
+    );
+  }
+
+  // SORT
+  filtered.sort((a, b) => {
+    const dateA = new Date(a.dueDate);
+    const dateB = new Date(b.dueDate);
+
+    if (sortOrder === "Newest") {
+      return dateB - dateA;
+    }
+
+    return dateA - dateB;
+  });
+
+  return filtered;
+}, [assignments, filterStatus, sortOrder]);
   return (
     <div className="max-w-[1100px] w-full mx-auto px-6 md:px-8 py-8 space-y-6 animate-fadeIn">
       {/* ── Header ── */}
@@ -93,12 +137,26 @@ export default function StudentAssignmentDashboard() {
           <p className="text-[13px] text-slate-400 mt-1">Manage and track your coursework progress.</p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="h-9 px-3 flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg text-[12px] font-bold text-slate-650 hover:bg-slate-50 transition-colors shadow-sm">
-            <Filter size={13} /> Filter
-          </button>
-          <button className="h-9 px-3 flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg text-[12px] font-bold text-slate-650 hover:bg-slate-50 transition-colors shadow-sm">
-            <ArrowUpDown size={13} /> Sort
-          </button>
+          <select
+  value={filterStatus}
+  onChange={(e) => setFilterStatus(e.target.value)}
+  className="h-9 px-3 bg-white border border-slate-200 rounded-lg text-[12px] font-bold text-slate-650 shadow-sm"
+>
+  <option value="All">All</option>
+  <option value="Pending">Pending</option>
+  <option value="Submitted">Submitted</option>
+  <option value="Late Submitted">Late Submitted</option>
+  <option value="Reviewed">Reviewed</option>
+  <option value="Overdue">Overdue</option>
+</select>
+         <select
+  value={sortOrder}
+  onChange={(e) => setSortOrder(e.target.value)}
+  className="h-9 px-3 bg-white border border-slate-200 rounded-lg text-[12px] font-bold text-slate-650 shadow-sm"
+>
+  <option value="Newest">Newest</option>
+  <option value="Oldest">Oldest</option>
+</select>
         </div>
       </div>
 
@@ -136,11 +194,19 @@ export default function StudentAssignmentDashboard() {
           </div>
           <div className="text-[26px] font-black text-slate-850 leading-none">{stats.overdue}</div>
         </div>
+        {/* Late Submitted */}
+        <div className="bg-white rounded-xl p-5 border-l-4 border-amber-500 shadow-sm flex flex-col justify-between h-[100px] hover:shadow-md transition-shadow">
+          <div className="flex justify-between items-start">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Late Submitted</span>
+            <AlertTriangle size={16} className="text-amber-500" />
+          </div>
+          <div className="text-[26px] font-black text-slate-850 leading-none">{stats.lateSubmitted}</div>
+        </div>
       </div>
 
       {/* ── Assignments Card List ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {assignments.map((a) => {
+        {filteredAssignments.map((a) => {
           let accentBorder = "border-l-slate-200";
           let badgeStyle = "bg-slate-100 text-slate-600 border-slate-200";
           let showScore = false;
