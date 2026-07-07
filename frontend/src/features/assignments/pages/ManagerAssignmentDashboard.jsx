@@ -53,25 +53,131 @@ export default function ManagerAssignmentDashboard() {
   }, []);
 
   // Compute Stats
-  const stats = useMemo(() => {
-    const total = assignments.length;
-    const active = assignments.filter(a => a.status === "Active").length;
-    const pendingReview = submissions.filter(s => s.status === "Submitted" || s.status === "Pending").length;
-    const reviewed = submissions.filter(s => s.status === "Graded").length;
-    const overdue = assignments.filter(a => a.status === "Overdue" || (a.dueDate && new Date(a.dueDate) < new Date() && a.status === "Active")).length;
-    return { total, active, pendingReview, reviewed, overdue };
-  }, [assignments, submissions]);
+ // Compute Stats
+const stats = useMemo(() => {
+
+  // TOTAL ASSIGNMENTS
+  const total = assignments.length;
+
+  // ACTIVE ASSIGNMENTS
+  // Draft should not come here
+  // Completed should not come here
+  const active = assignments.filter(a => {
+
+    if (a.status === "Draft") return false;
+
+    if (!a.dueDate) return false;
+
+    const dueDate =
+      new Date(a.dueDate).setHours(23, 59, 59, 999);
+
+    return dueDate >= new Date();
+
+  }).length;
+
+  // PENDING REVIEW
+  // Comes ONLY from submissions
+  const pendingReview = submissions.filter(
+    s =>
+      s.status === "Submitted" ||
+      s.status === "Pending"
+  ).length;
+
+  // REVIEWED
+  // Comes ONLY from submissions
+  const reviewed = submissions.filter(
+    s => s.status === "Graded"
+  ).length;
+
+  // OVERDUE
+  // Assignment deadline passed
+  const overdue = assignments.filter(a => {
+
+    if (a.status === "Draft") return false;
+
+    if (!a.dueDate) return false;
+
+    const dueDate =
+      new Date(a.dueDate).setHours(23, 59, 59, 999);
+
+    return dueDate < new Date();
+
+  }).length;
+
+  return {
+    total,
+    active,
+    pendingReview,
+    reviewed,
+    overdue
+  };
+
+}, [assignments, submissions]);
 
   // Filtered list
-  const filteredAssignments = useMemo(() => {
-    return assignments.filter(a => {
-      const matchesCourse = selectedCourse === "All Courses" || a.course === selectedCourse;
-      const matchesBatch = selectedBatch === "All Batches" || a.batch === selectedBatch;
-      const matchesStatus = selectedStatus === "All Statuses" || a.status === selectedStatus;
-      const matchesDate = !selectedDate || (a.dueDate && a.dueDate.includes(selectedDate));
-      return matchesCourse && matchesBatch && matchesStatus && matchesDate;
+  // Filtered list
+const filteredAssignments = useMemo(() => {
+
+  return assignments
+    .map(a => {
+
+      let computedStatus = a.status;
+
+      // Draft remains Draft
+      // Otherwise determine using due date
+      if (a.status !== "Draft" && a.dueDate) {
+
+        const dueDate =
+          new Date(a.dueDate).setHours(23, 59, 59, 999);
+
+        computedStatus =
+          dueDate < new Date()
+            ? "Completed"
+            : "Active";
+      }
+
+      return {
+        ...a,
+        status: computedStatus
+      };
+    })
+    .filter(a => {
+
+      const matchesCourse =
+        selectedCourse === "All Courses" ||
+        a.course === selectedCourse;
+
+      const matchesBatch =
+        selectedBatch === "All Batches" ||
+        a.batch === selectedBatch;
+
+      const matchesStatus =
+        selectedStatus === "All Statuses" ||
+        a.status === selectedStatus;
+
+      const matchesDate =
+        !selectedDate ||
+        (
+          a.dueDate &&
+          new Date(a.dueDate)
+            .toLocaleDateString("en-CA") === selectedDate
+        );
+
+      return (
+        matchesCourse &&
+        matchesBatch &&
+        matchesStatus &&
+        matchesDate
+      );
     });
-  }, [assignments, selectedCourse, selectedBatch, selectedStatus, selectedDate]);
+
+}, [
+  assignments,
+  selectedCourse,
+  selectedBatch,
+  selectedStatus,
+  selectedDate
+]);
 
   return (
     <AppLayout>
@@ -91,10 +197,10 @@ export default function ManagerAssignmentDashboard() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          <StatsCard label="Total" value={stats.total} accentColor="#6C1D5F" />
-          <StatsCard label="Active" value={stats.active} accentColor="#01AC9F" />
-          <StatsCard label="Pending Review" value={stats.pendingReview} accentColor="#f59e0b" />
-          <StatsCard label="Reviewed" value={stats.reviewed} accentColor="#6366f1" />
+          <StatsCard label="Total Assignments" value={stats.total} accentColor="#6C1D5F" />
+          <StatsCard label="Active Assignments" value={stats.active} accentColor="#01AC9F" />
+          <StatsCard label="Pending Review Submissions" value={stats.pendingReview} accentColor="#f59e0b" />
+          <StatsCard label="Reviewed Submissions" value={stats.reviewed} accentColor="#6366f1" />
           <StatsCard
             label="Overdue"
             value={<span className="text-rose-650">{stats.overdue}</span>}

@@ -60,12 +60,14 @@ public class AssignmentController {
         long submitted = assignments.stream().filter(a -> "Submitted".equalsIgnoreCase(a.getDisplayStatus())).count();
         long reviewed = assignments.stream().filter(a -> "Reviewed".equalsIgnoreCase(a.getDisplayStatus())).count();
         long overdue = assignments.stream().filter(a -> "Overdue".equalsIgnoreCase(a.getDisplayStatus())).count();
+        long lateSubmitted = assignments.stream().filter(a -> "Late Submitted".equalsIgnoreCase(a.getDisplayStatus())).count();
 
         java.util.Map<String, Long> stats = new java.util.HashMap<>();
         stats.put("pending", pending);
         stats.put("submitted", submitted);
         stats.put("reviewed", reviewed);
         stats.put("overdue", overdue);
+        stats.put("lateSubmitted", lateSubmitted);
         return new ApiResponse<>(stats);
     }
 }

@@ -1,5 +1,6 @@
 package com.lms.backend.submission;
 
+import com.lms.backend.assignment.Assignment;
 import com.lms.backend.assignment.AssignmentRepository;
 import com.lms.backend.student.Student;
 import com.lms.backend.student.StudentRepository;
@@ -8,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -39,37 +42,40 @@ public class SubmissionService {
     }
 
     public Optional<Submission> gradeSubmission(String id, Submission gradeData) {
+
         return submissionRepository.findById(id).map(submission -> {
+
             submission.setStatus("Graded");
+
             submission.setScore(gradeData.getScore());
-            submission.setFeedback(gradeData.getFeedback() != null ? gradeData.getFeedback() : "");
-            submission.setPrivateNotes(gradeData.getPrivateNotes() != null ? gradeData.getPrivateNotes() : "");
-            submission.setEvaluator(gradeData.getEvaluator() != null && !gradeData.getEvaluator().trim().isEmpty() 
-                    ? gradeData.getEvaluator() 
-                    : "Dr. Sarah Jenkins");
-            
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM d, yyyy");
-            submission.setEvaluatedDate(LocalDate.now().format(formatter));
 
-            Submission saved = submissionRepository.save(submission);
+            submission.setFeedback(
+                    gradeData.getFeedback() != null
+                            ? gradeData.getFeedback()
+                            : ""
+            );
 
-            // Auto-update assignment status if needed
-            assignmentRepository.findById(submission.getAssignmentId()).ifPresent(assignment -> {
-                if ("Active".equalsIgnoreCase(assignment.getStatus())) {
-                    // Check if there are other pending (Submitted) submissions for this assignment
-                    List<Submission> allSubmissions = submissionRepository.findAll();
-                    boolean remainingPending = allSubmissions.stream()
-                            .anyMatch(s -> s.getAssignmentId().equals(submission.getAssignmentId()) 
-                                    && "Submitted".equalsIgnoreCase(s.getStatus()) 
-                                    && !s.getId().equals(id));
-                    if (!remainingPending) {
-                        assignment.setStatus("Completed");
-                        assignmentRepository.save(assignment);
-                    }
-                }
-            });
+            submission.setPrivateNotes(
+                    gradeData.getPrivateNotes() != null
+                            ? gradeData.getPrivateNotes()
+                            : ""
+            );
 
-            return saved;
+            submission.setEvaluator(
+                    gradeData.getEvaluator() != null &&
+                            !gradeData.getEvaluator().trim().isEmpty()
+                            ? gradeData.getEvaluator()
+                            : "Dr. Sarah Jenkins"
+            );
+
+            DateTimeFormatter formatter =
+                    DateTimeFormatter.ofPattern("MMM d, yyyy");
+
+            submission.setEvaluatedDate(
+                    LocalDate.now().format(formatter)
+            );
+
+            return submissionRepository.save(submission);
         });
     }
 
@@ -122,36 +128,146 @@ public class SubmissionService {
         }
 
         Submission submission = new Submission();
-        submission.setId("sub_" + System.currentTimeMillis());
-        submission.setAssignmentId(submissionData.getAssignmentId());
-        submission.setAssignmentTitle(submissionData.getAssignmentTitle());
+
+        submission.setId(
+                "sub_" + System.currentTimeMillis()
+        );
+
+        submission.setAssignmentId(
+                submissionData.getAssignmentId()
+        );
+
+        submission.setAssignmentTitle(
+                submissionData.getAssignmentTitle()
+        );
+
         submission.setStudentId(studentId);
         submission.setStudentName(studentName);
         submission.setStudentAvatar("");
         submission.setBatch(batch);
         submission.setSubmittedAt("Just now");
-        submission.setSubmittedDateRaw(Instant.now().toString());
-        submission.setStatus("Submitted");
-        submission.setAttempt(submissionData.getAttempt() != null ? submissionData.getAttempt() : 1);
-        submission.setFiles(submissionData.getFiles());
-        submission.setStudentNote(submissionData.getStudentNote() != null ? submissionData.getStudentNote() : "");
+
+        submission.setSubmittedDateRaw(
+                Instant.now().toString()
+        );
+
+        // Determine submission status
+        final String[] submissionStatus = {"Submitted"};
+
+        Optional<Assignment> assignmentOptional =
+                assignmentRepository.findById(
+                        submissionData.getAssignmentId()
+                );
+
+        if (assignmentOptional.isPresent()) {
+
+            Assignment assignment =
+                    assignmentOptional.get();
+
+            // Set JPA relationship
+            submission.setAssignment(assignment);
+
+            try {
+
+                if (assignment.getDueDate() != null &&
+                        !assignment.getDueDate().isEmpty()) {
+
+                    String dueDateString =
+                            assignment.getDueDate();
+
+                    LocalDateTime dueDateTime;
+
+                    // Full ISO format
+                    if (dueDateString.contains("T")) {
+
+                        dueDateTime =
+                                Instant.parse(dueDateString)
+                                        .atZone(
+                                                ZoneId.systemDefault()
+                                        )
+                                        .toLocalDateTime();
+
+                    } else {
+
+                        // yyyy-MM-dd format
+                        DateTimeFormatter formatter =
+        DateTimeFormatter.ofPattern(
+                "MMM d, yyyy"
+        );
+
+LocalDate dueDate =
+        LocalDate.parse(
+                dueDateString,
+                formatter
+        );
+
+dueDateTime =
+        dueDate.atTime(23, 59);
+                    }
+
+                    LocalDateTime now =
+                            LocalDateTime.now();
+                    System.out.println("Due Date Raw: " + assignment.getDueDate());
+                    System.out.println("Parsed Due Date: " + dueDateTime);
+                    System.out.println("Current Time: " + now);
+                    if (now.isAfter(dueDateTime)) {
+
+                        submissionStatus[0] =
+                                "Late Submitted";
+                    }
+                }
+
+            } catch (Exception e) {
+
+                e.printStackTrace();
+            }
+        }
+
+        submission.setStatus(submissionStatus[0]);
+
+        submission.setAttempt(
+                submissionData.getAttempt() != null
+                        ? submissionData.getAttempt()
+                        : 1
+        );
+
+        List<SubmissionFile> files =
+            submissionData.getFiles();
+
+        if (files != null) {
+
+            for (SubmissionFile file : files) {
+
+                file.setSubmission(submission);
+            }
+
+            submission.setFiles(files);
+        }
+
+        submission.setStudentNote(
+                submissionData.getStudentNote() != null
+                        ? submissionData.getStudentNote()
+                        : ""
+        );
+
         submission.setScore(null);
+
         submission.setFeedback("");
+
         submission.setPrivateNotes("");
+
         submission.setEvaluator("");
+
         submission.setEvaluatedDate("");
 
-        Submission saved = submissionRepository.save(submission);
+        // Assignment statuses:
+        // Draft / Active / Completed
 
-        // Update student assignment list status to "Submitted"
-        assignmentRepository.findById(submissionData.getAssignmentId()).ifPresent(assignment -> {
-            assignment.setStatus("Submitted");
-            assignmentRepository.save(assignment);
-        });
+        // Submission statuses:
+        // Submitted / Late Submitted / Graded
 
-        return saved;
+        return submissionRepository.save(submission);
     }
-
     public java.util.Map<String, Object> getGradebookStats() {
         List<Submission> submissions = submissionRepository.findAll();
         long total = submissions.size();
