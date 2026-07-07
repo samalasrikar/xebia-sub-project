@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
+import { Button } from "@/shared/components/ui/button";
 
 import PageHeader from "../components/PageHeader";
 import StatsCard from "../components/StatsCard";
@@ -124,12 +125,12 @@ export default function Gradebook() {
     useMemo(() => {
       return submissions.filter((s) => {
         const matchesSearch =
-          s.studentName
+          (s.studentName || "")
             .toLowerCase()
             .includes(
               searchQuery.toLowerCase()
             ) ||
-          s.assignmentTitle
+          (s.assignmentTitle || "")
             .toLowerCase()
             .includes(
               searchQuery.toLowerCase()
@@ -278,20 +279,19 @@ export default function Gradebook() {
               "No Upcoming Assignments"
             }
             subtitle={
-              nextDeadline?.dueDate
-                ? new Date(
-                    new Date(nextDeadline.dueDate).setHours(23, 59)
-                    ).toLocaleString(
-                    "en-IN",
-                    {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                      hour: "numeric",
-                      minute: "2-digit",
-                    }
-                  )
-                : "-"
+              (() => {
+                if (!nextDeadline?.dueDate) return "-";
+                const d = new Date(nextDeadline.dueDate);
+                if (isNaN(d.getTime())) return nextDeadline.dueDate;
+                d.setHours(23, 59, 59, 999);
+                return d.toLocaleString("en-IN", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                });
+              })()
             }
             variant="accent"
             className="bg-[#6C1D5F]"

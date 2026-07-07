@@ -47,7 +47,9 @@ public class QuizController {
 
         long averageScore = 0;
         if (!completedQuizzes.isEmpty()) {
-            double sum = completedQuizzes.stream().mapToDouble(Quiz::getPercentage).sum();
+            double sum = completedQuizzes.stream()
+                    .mapToDouble(q -> q.getPercentage() != null ? q.getPercentage() : 0.0)
+                    .sum();
             averageScore = Math.round(sum / completedQuizzes.size());
         }
 

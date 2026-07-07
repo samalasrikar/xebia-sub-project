@@ -8,8 +8,9 @@ const StudentAvatarCell = React.memo(function StudentAvatarCell({
   name,
   size = "default", // "default" (w-8 h-8) | "sm" (w-9 h-9)
 }) {
-  const initials = name
+  const initials = (name || "Anonymous")
     .split(" ")
+    .filter(Boolean)
     .map((n) => n[0])
     .join("");
 
