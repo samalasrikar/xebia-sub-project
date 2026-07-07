@@ -71,12 +71,13 @@ export default function SubmissionReview() {
       evaluator: "Dr. Sarah Jenkins"
     };
 
+    let updated;
     if (customStatus === "Reject") {
-      gradeData.score = 0;
-      gradeData.feedback = "[REJECTED] " + feedback;
+      updated = await assignmentService.rejectSubmission(selectedSub.id, gradeData);
+    } else {
+      updated = await assignmentService.gradeSubmission(selectedSub.id, gradeData);
     }
 
-    const updated = await assignmentService.gradeSubmission(selectedSub.id, gradeData);
     if (updated) {
       setSubmissions(prev => prev.map(s => s.id === selectedSub.id ? updated : s));
       setSelectedSub(updated);

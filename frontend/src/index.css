@@ -146,16 +146,16 @@
     --color-button-primary:  #6C1D5F;
 
     /* Stitch custom spacing */
-    --spacing-container-margin: 32px;
-    --spacing-md: 16px;
-    --spacing-lg: 24px;
-    --spacing-sm: 8px;
-    --spacing-2xl: 48px;
-    --spacing-gutter: 24px;
-    --spacing-base: 8px;
-    --spacing-xs: 4px;
-    --spacing-xl: 32px;
-    --spacing-3xl: 64px;
+    --spacing-stitch-container-margin: 32px;
+    --spacing-stitch-md: 16px;
+    --spacing-stitch-lg: 24px;
+    --spacing-stitch-sm: 8px;
+    --spacing-stitch-2xl: 48px;
+    --spacing-stitch-gutter: 24px;
+    --spacing-stitch-base: 8px;
+    --spacing-stitch-xs: 4px;
+    --spacing-stitch-xl: 32px;
+    --spacing-stitch-3xl: 64px;
 
     /* Stitch custom typography */
     --font-body-base: "Inter", sans-serif;
@@ -366,4 +366,14 @@
   border: 1.5px solid #6C1D5F !important;
   border-radius: 20px;
   transition: all 0.3s ease;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }

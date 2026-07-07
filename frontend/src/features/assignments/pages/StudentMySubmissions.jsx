@@ -25,46 +25,7 @@ export default function StudentMySubmissions() {
       setAssignment(asData);
       const filtered = subData.filter(s => s.assignmentId === id);
       
-      if (filtered.length === 0) {
-        const mockForAssignment = [
-          {
-            id: "sub_1",
-            assignmentId: id,
-            assignmentTitle: asData?.title || "Agile Methodology Case Study",
-            status: "Graded",
-            attempt: 2,
-            submittedAt: "Oct 20, 2023, 14:30",
-            score: 90,
-            feedback: "Excellent grasp of the core concepts. The section on load balancing was particularly well-researched. Consider expanding on cost optimization in future modules.",
-            files: [{ name: "v2_final_report.pdf", size: "3.2 MB" }]
-          },
-          {
-            id: "sub_2",
-            assignmentId: id,
-            assignmentTitle: asData?.title || "Agile Methodology Case Study",
-            status: "Submitted",
-            attempt: 1,
-            submittedAt: "Oct 18, 2023, 09:15",
-            score: null,
-            feedback: "",
-            files: [{ name: "agile_case_study.pdf", size: "1.2 MB" }]
-          },
-          {
-            id: "sub_3",
-            assignmentId: id,
-            assignmentTitle: asData?.title || "Agile Methodology Case Study",
-            status: "Revision Needed",
-            attempt: 1,
-            submittedAt: "Oct 05, 2023",
-            score: null,
-            feedback: "The section detailing GDPR compliance lacks specific examples applicable to our European operations. Please revise Section 3 and resubmit by Friday.",
-            files: [{ name: "security_v1.pdf", size: "2.8 MB" }]
-          }
-        ];
-        setSubmissions(mockForAssignment);
-      } else {
-        setSubmissions(filtered);
-      }
+      setSubmissions(filtered);
     });
   }, [id]);
 

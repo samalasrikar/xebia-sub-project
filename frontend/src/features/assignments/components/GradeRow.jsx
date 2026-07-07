@@ -2,6 +2,7 @@ import React from "react";
 import StudentAvatarCell from "./StudentAvatarCell";
 import StatusBadge from "./StatusBadge";
 import GradeActions from "./GradeActions";
+import { TableRow, TableCell } from "@/shared/components/ui/table";
 
 /**
  * Single row in the Gradebook table.
@@ -22,39 +23,39 @@ const GradeRow = React.memo(function GradeRow({ submission, onRowClick, onEdit, 
   const gradeLetter = getGradeLetter(s.score);
 
   return (
-    <tr
-      className="hover:bg-slate-50/50 transition-colors group cursor-pointer"
+    <TableRow
+      className="hover:bg-slate-50/50 transition-colors group cursor-pointer border-b border-slate-100"
       onClick={onRowClick}
     >
-      <td className="py-3 px-5 text-center" onClick={(e) => e.stopPropagation()}>
+      <TableCell className="py-3 px-5 text-center" onClick={(e) => e.stopPropagation()}>
         <input className="rounded border-slate-300 text-[#6C1D5F] focus:ring-[#6C1D5F]" type="checkbox" />
-      </td>
-      <td className="py-3 px-4">
+      </TableCell>
+      <TableCell className="py-3 px-4">
         <div className="flex items-center gap-3">
           <StudentAvatarCell name={s.studentName} />
           <div className="font-semibold text-slate-800">{s.studentName}</div>
         </div>
-      </td>
-      <td className="py-3 px-4 text-slate-400">{s.batch}</td>
-      <td className="py-3 px-4 font-medium text-slate-700 truncate max-w-[200px]">{s.assignmentTitle}</td>
-      <td className="py-3 px-4 text-right font-bold text-slate-700">
+      </TableCell>
+      <TableCell className="py-3 px-4 text-slate-400">{s.batch}</TableCell>
+      <TableCell className="py-3 px-4 font-medium text-slate-700 truncate max-w-[200px]">{s.assignmentTitle}</TableCell>
+      <TableCell className="py-3 px-4 text-right font-bold text-slate-700">
         {s.score !== null ? `${s.score}/100` : "--/100"}
-      </td>
-      <td className="py-3 px-4 text-center">
+      </TableCell>
+      <TableCell className="py-3 px-4 text-center">
         <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-slate-100 font-bold text-xs text-slate-700">
           {gradeLetter}
         </span>
-      </td>
-      <td className={`py-3 px-4 ${isLate ? "text-rose-500 font-medium" : "text-slate-400"}`}>
+      </TableCell>
+      <TableCell className={`py-3 px-4 ${isLate ? "text-rose-500 font-medium" : "text-slate-400"}`}>
         {s.submittedAt || "Not Submitted"}
-      </td>
-      <td className="py-3 px-4">
+      </TableCell>
+      <TableCell className="py-3 px-4">
         <StatusBadge status={s.status} />
-      </td>
-      <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+      </TableCell>
+      <TableCell className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
         <GradeActions onEdit={onEdit} onDelete={onDelete} />
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 });
 

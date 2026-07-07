@@ -4,6 +4,13 @@ import AppLayout from "@/app/layouts/AppLayout";
 import assignmentService from "../services/assignmentService";
 import DeleteDialog from "@/shared/components/DeleteDialog";
 import { Plus } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
 
 import PageHeader from "../components/PageHeader";
 import StatsCard from "../components/StatsCard";
@@ -101,38 +108,41 @@ export default function ManagerAssignmentDashboard() {
           <div className="flex flex-wrap items-end gap-4">
             <div className="flex-1 min-w-[200px]">
               <label className="block text-[11px] font-bold text-slate-450 uppercase mb-1.5">Course</label>
-              <select
-                className="w-full rounded-lg border border-slate-200 bg-white text-[13px] px-3 py-2 outline-none focus:border-[#6C1D5F] text-slate-700"
-                value={selectedCourse}
-                onChange={(e) => setSelectedCourse(e.target.value)}
-              >
-                <option>All Courses</option>
-                {courses.map(c => <option key={c.id} value={c.title}>{c.title}</option>)}
-              </select>
+              <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+                <SelectTrigger className="w-full rounded-lg border border-slate-200 bg-white text-[13px] px-3 py-2 outline-none focus:border-[#6C1D5F] text-slate-700 h-9 font-semibold">
+                  <SelectValue placeholder="All Courses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All Courses">All Courses</SelectItem>
+                  {courses.map(c => <SelectItem key={c.id} value={c.title}>{c.title}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex-1 min-w-[150px]">
               <label className="block text-[11px] font-bold text-slate-450 uppercase mb-1.5">Batch</label>
-              <select
-                className="w-full rounded-lg border border-slate-200 bg-white text-[13px] px-3 py-2 outline-none focus:border-[#6C1D5F] text-slate-700"
-                value={selectedBatch}
-                onChange={(e) => setSelectedBatch(e.target.value)}
-              >
-                <option>All Batches</option>
-                {batches.map(b => <option key={b.id} value={b.title}>{b.title}</option>)}
-              </select>
+              <Select value={selectedBatch} onValueChange={setSelectedBatch}>
+                <SelectTrigger className="w-full rounded-lg border border-slate-200 bg-white text-[13px] px-3 py-2 outline-none focus:border-[#6C1D5F] text-slate-700 h-9 font-semibold">
+                  <SelectValue placeholder="All Batches" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All Batches">All Batches</SelectItem>
+                  {batches.map(b => <SelectItem key={b.id} value={b.title}>{b.title}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex-1 min-w-[180px]">
               <label className="block text-[11px] font-bold text-slate-450 uppercase mb-1.5">Status</label>
-              <select
-                className="w-full rounded-lg border border-slate-200 bg-white text-[13px] px-3 py-2 outline-none focus:border-[#6C1D5F] text-slate-700"
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-              >
-                <option>All Statuses</option>
-                <option value="Active">Active</option>
-                <option value="Draft">Draft</option>
-                <option value="Completed">Completed</option>
-              </select>
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="w-full rounded-lg border border-slate-200 bg-white text-[13px] px-3 py-2 outline-none focus:border-[#6C1D5F] text-slate-700 h-9 font-semibold">
+                  <SelectValue placeholder="All Statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All Statuses">All Statuses</SelectItem>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Draft">Draft</SelectItem>
+                  <SelectItem value="Completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex-1 min-w-[150px]">
               <label className="block text-[11px] font-bold text-slate-450 uppercase mb-1.5">Due Date</label>

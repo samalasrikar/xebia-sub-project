@@ -14,6 +14,7 @@ export default function StudentAssignmentResult() {
   const navigate = useNavigate();
   const [assignment, setAssignment] = useState(null);
   const [submission, setSubmission] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const studentId = "s4";
 
@@ -27,28 +28,20 @@ export default function StudentAssignmentResult() {
       
       if (sub) {
         setSubmission(sub);
-      } else {
-        const fallbackSub = {
-          id: "sub_mock",
-          assignmentId: id,
-          assignmentTitle: asData?.title || "Database Normalization Quiz",
-          studentName: "Jane Doe",
-          submittedAt: "Oct 24, 2023, 14:30 EST",
-          score: 85,
-          feedback: "Overall, this is a solid submission that meets the core requirements of the prompt. The use of React hooks for state management is commendable, and the Tailwind implementation is clean and responsive.\n\nStrengths:\n- Excellent component architecture; separation of concerns is clear.\n- API integration is robust, handling loading and error states gracefully.\n- Responsive design works flawlessly across mobile and desktop breakpoints.\n\nAreas for Improvement:\n- The filtering logic could be optimized. Currently, it filters on every keystroke, which might cause performance issues with larger datasets. Consider implementing debouncing.\n- Accessibility (a11y) needs attention. Some interactive elements are missing aria-labels, and keyboard navigation is incomplete.\n\nKeep up the good work! Focus on performance optimization and accessibility in the next module.",
-          evaluator: "Dr. Sarah Jenkins",
-          evaluatedDate: "Oct 26, 2023",
-          files: [
-            { name: "project_report.pdf", size: "2.4 MB" },
-            { name: "source_code.zip", size: "15.1 MB" }
-          ]
-        };
-        setSubmission(fallbackSub);
       }
+      setLoading(false);
+    }).catch(() => {
+      setLoading(false);
     });
   }, [id]);
 
-  if (!assignment || !submission) {
+  const breadcrumbItems = [
+    { label: "Dashboard", to: "/student" },
+    { label: "Assignments", to: "/student/assignments" },
+    { label: "Results" },
+  ];
+
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh] text-slate-400">
         Loading assignment result...
@@ -56,11 +49,41 @@ export default function StudentAssignmentResult() {
     );
   }
 
-  const breadcrumbItems = [
-    { label: "Dashboard", to: "/student" },
-    { label: "Assignments", to: "/student/assignments" },
-    { label: "Results" },
-  ];
+  if (!assignment) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh] text-slate-400">
+        Assignment not found.
+      </div>
+    );
+  }
+
+  if (!submission) {
+    return (
+      <div className="max-w-[1050px] w-full mx-auto px-6 md:px-8 py-8 space-y-6 animate-fadeIn pb-12">
+        {/* Breadcrumbs & Header */}
+        <div className="space-y-3">
+          <Breadcrumbs items={breadcrumbItems} />
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate(`/student/assignments/${assignment.id}/submissions`)}
+              className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors"
+            >
+              <ArrowLeft size={14} />
+            </button>
+            <div>
+              <h1 className="text-2xl font-black text-slate-800 tracking-tight">Assignment Feedback</h1>
+              <p className="text-[13px] text-slate-400 mt-1">{assignment.title}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-8 border border-slate-200 text-center text-slate-500">
+          No graded submission found for this assignment.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-[1050px] w-full mx-auto px-6 md:px-8 py-8 space-y-6 animate-fadeIn pb-12">

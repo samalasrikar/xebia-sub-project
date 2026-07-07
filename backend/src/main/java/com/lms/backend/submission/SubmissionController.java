@@ -38,6 +38,13 @@ public class SubmissionController {
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
+    @PostMapping("/submissions/{id}/reject")
+    public ResponseEntity<ApiResponse<Submission>> rejectSubmission(@PathVariable String id, @RequestBody Submission gradeData) {
+        return submissionService.rejectSubmission(id, gradeData)
+                .map(rejected -> ResponseEntity.ok(new ApiResponse<>(rejected)))
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
     @PostMapping("/student/{studentId}/submit")
     public ResponseEntity<ApiResponse<Submission>> submitAssignment(@PathVariable String studentId, @RequestBody Submission submissionData) {
         Submission created = submissionService.submitAssignment(studentId, submissionData);

@@ -6,7 +6,9 @@ import {
   Search,
   GraduationCap,
   ChevronsUpDown,
-  X
+  X,
+  HelpCircle,
+  Layers
 } from "lucide-react";
 
 import adminProfileIcon from "../../assets/admin_profile_icon.svg";
@@ -16,6 +18,8 @@ const NAV_GROUPS = [
     label: "Management",
     items: [
       { title: "Assignments", path: "/trainer/assignments", icon: BookOpen },
+      { title: "Quiz", path: "/trainer/quizzes", icon: HelpCircle },
+      { title: "Batches", path: "/trainer/batches", icon: Layers },
       { title: "Gradebook", path: "/trainer/gradebook", icon: Award },
     ],
   },

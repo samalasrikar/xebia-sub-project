@@ -1,7 +1,8 @@
 package com.lms.backend.submission;
 
-import com.lms.backend.assignment.Assignment;
 import com.lms.backend.assignment.AssignmentRepository;
+import com.lms.backend.student.Student;
+import com.lms.backend.student.StudentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@SuppressWarnings("null")
 public class SubmissionService {
 
     @Autowired
@@ -19,6 +21,9 @@ public class SubmissionService {
 
     @Autowired
     private AssignmentRepository assignmentRepository;
+
+    @Autowired
+    private StudentRepository studentRepository;
 
     public List<Submission> getAllSubmissions() {
         return submissionRepository.findAll();
@@ -67,19 +72,62 @@ public class SubmissionService {
         });
     }
 
+    public Optional<Submission> rejectSubmission(String id, Submission gradeData) {
+        return submissionRepository.findById(id).map(submission -> {
+            submission.setStatus("Rejected");
+            submission.setScore(0);
+            submission.setFeedback(gradeData.getFeedback() != null ? "[REJECTED] " + gradeData.getFeedback() : "[REJECTED]");
+            submission.setPrivateNotes(gradeData.getPrivateNotes() != null ? gradeData.getPrivateNotes() : "");
+            submission.setEvaluator(gradeData.getEvaluator() != null && !gradeData.getEvaluator().trim().isEmpty() 
+                    ? gradeData.getEvaluator() 
+                    : "Dr. Sarah Jenkins");
+            
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM d, yyyy");
+            submission.setEvaluatedDate(LocalDate.now().format(formatter));
+
+            Submission saved = submissionRepository.save(submission);
+
+            // Auto-update assignment status if needed
+            assignmentRepository.findById(submission.getAssignmentId()).ifPresent(assignment -> {
+                if ("Active".equalsIgnoreCase(assignment.getStatus())) {
+                    List<Submission> allSubmissions = submissionRepository.findAll();
+                    boolean remainingPending = allSubmissions.stream()
+                            .anyMatch(s -> s.getAssignmentId().equals(submission.getAssignmentId()) 
+                                    && "Submitted".equalsIgnoreCase(s.getStatus()) 
+                                    && !s.getId().equals(id));
+                    if (!remainingPending) {
+                        assignment.setStatus("Completed");
+                        assignmentRepository.save(assignment);
+                    }
+                }
+            });
+
+            return saved;
+        });
+    }
+
     public Submission submitAssignment(String studentId, Submission submissionData) {
         // Remove existing submission from the same student and assignment to simulate resubmission
         submissionRepository.findByStudentIdAndAssignmentId(studentId, submissionData.getAssignmentId())
                 .ifPresent(existing -> submissionRepository.delete(existing));
+
+        // Fetch student details from DB to enforce backend authority
+        String studentName = "Jane Doe";
+        String batch = "Batch 2023-A";
+        Optional<Student> studentOpt = studentRepository.findById(studentId);
+        if (studentOpt.isPresent()) {
+            studentName = studentOpt.get().getName();
+            batch = studentOpt.get().getBatch();
+        }
 
         Submission submission = new Submission();
         submission.setId("sub_" + System.currentTimeMillis());
         submission.setAssignmentId(submissionData.getAssignmentId());
         submission.setAssignmentTitle(submissionData.getAssignmentTitle());
         submission.setStudentId(studentId);
-        submission.setStudentName(submissionData.getStudentName() != null ? submissionData.getStudentName() : "Jane Doe");
+        submission.setStudentName(studentName);
         submission.setStudentAvatar("");
-        submission.setBatch(submissionData.getBatch() != null ? submissionData.getBatch() : "Batch 2023-A");
+        submission.setBatch(batch);
         submission.setSubmittedAt("Just now");
         submission.setSubmittedDateRaw(Instant.now().toString());
         submission.setStatus("Submitted");

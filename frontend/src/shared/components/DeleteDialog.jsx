@@ -10,15 +10,22 @@ import { Button } from "@/shared/components/ui/button";
 
 export default function DeleteDialog({
   show,
+  isOpen,
   title = "Delete Item",
-  message = "Are you sure you want to delete this item? This action cannot be undone.",
+  message,
+  description,
   itemName,
   deleting,
   onCancel,
+  onClose,
   onConfirm,
 }) {
+  const visible = show !== undefined ? show : isOpen;
+  const displayMessage = message || description || "Are you sure you want to delete this item? This action cannot be undone.";
+  const handleCancel = onCancel || onClose || (() => {});
+
   return (
-    <Dialog open={show} onOpenChange={(open) => !open && onCancel()}>
+    <Dialog open={visible} onOpenChange={(open) => !open && handleCancel()}>
       <DialogContent className="max-w-[420px] rounded-xl shadow-xl bg-white border border-slate-200 p-6">
         
         {/* Header */}
@@ -30,7 +37,7 @@ export default function DeleteDialog({
             <div className="flex flex-col text-left">
               <span className="leading-tight">{title}</span>
               <span className="text-[12px] text-slate-500 font-medium mt-1 normal-case leading-relaxed">
-                {message}
+                {displayMessage}
               </span>
             </div>
           </DialogTitle>
@@ -48,7 +55,7 @@ export default function DeleteDialog({
         <DialogFooter className="pt-4 border-t border-slate-50 flex items-center justify-end gap-2.5">
           <Button
             variant="outline"
-            onClick={onCancel}
+            onClick={handleCancel}
             disabled={deleting}
             className="text-[12.5px] font-semibold"
           >

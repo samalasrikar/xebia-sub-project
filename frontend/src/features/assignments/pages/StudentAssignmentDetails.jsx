@@ -77,8 +77,6 @@ export default function StudentAssignmentDetails() {
     const payload = {
       assignmentId: assignment.id,
       assignmentTitle: assignment.title,
-      studentName: "Jane Doe",
-      batch: "Batch 2023-A",
       attempt: 1,
       files: uploadedFiles,
       studentNote: notes

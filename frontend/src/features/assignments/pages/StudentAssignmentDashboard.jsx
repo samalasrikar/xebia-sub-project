@@ -14,6 +14,10 @@ import {
   Eye
 } from "lucide-react";
 
+import { Button } from "@/shared/components/ui/button";
+import { Badge } from "@/shared/components/ui/badge";
+import { Card, CardContent } from "@/shared/components/ui/card";
+
 export default function StudentAssignmentDashboard() {
   const navigate = useNavigate();
   const [rawAssignments, setRawAssignments] = useState([]);
@@ -25,7 +29,7 @@ export default function StudentAssignmentDashboard() {
   useEffect(() => {
     // For students, let's fetch both all assignments and student's submissions to reconcile status
     Promise.all([
-      assignmentService.getAssignments(),
+      assignmentService.getAssignments(studentId),
       assignmentService.getStudentSubmissions(studentId)
     ]).then(([allAs, studentSubs]) => {
       setRawAssignments(allAs || []);
@@ -93,49 +97,57 @@ export default function StudentAssignmentDashboard() {
           <p className="text-[13px] text-slate-400 mt-1">Manage and track your coursework progress.</p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="h-9 px-3 flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg text-[12px] font-bold text-slate-650 hover:bg-slate-50 transition-colors shadow-sm">
+          <Button variant="outline" className="h-9 px-3 flex items-center gap-1.5 bg-white border border-slate-205 rounded-lg text-[12px] font-bold text-slate-650 hover:bg-slate-50 transition-colors shadow-sm">
             <Filter size={13} /> Filter
-          </button>
-          <button className="h-9 px-3 flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg text-[12px] font-bold text-slate-650 hover:bg-slate-50 transition-colors shadow-sm">
+          </Button>
+          <Button variant="outline" className="h-9 px-3 flex items-center gap-1.5 bg-white border border-slate-205 rounded-lg text-[12px] font-bold text-slate-650 hover:bg-slate-50 transition-colors shadow-sm">
             <ArrowUpDown size={13} /> Sort
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* ── Stats Bento Grid ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Pending */}
-        <div className="bg-white rounded-xl p-5 border-l-4 border-[#FF6200] shadow-sm flex flex-col justify-between h-[100px] hover:shadow-md transition-shadow">
-          <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pending</span>
-            <Clock size={16} className="text-[#FF6200]" />
-          </div>
-          <div className="text-[26px] font-black text-slate-850 leading-none">{stats.pending}</div>
-        </div>
+        <Card className="bg-white rounded-xl border-l-4 border-l-[#FF6200] border-y-slate-200 border-r-slate-200 shadow-sm flex flex-col justify-between h-[100px] hover:shadow-md transition-shadow">
+          <CardContent className="p-5 flex flex-col justify-between h-full w-full">
+            <div className="flex justify-between items-start w-full">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pending</span>
+              <Clock size={16} className="text-[#FF6200]" />
+            </div>
+            <div className="text-[26px] font-black text-slate-850 leading-none">{stats.pending}</div>
+          </CardContent>
+        </Card>
         {/* Submitted */}
-        <div className="bg-white rounded-xl p-5 border-l-4 border-[#6C1D5F] shadow-sm flex flex-col justify-between h-[100px] hover:shadow-md transition-shadow">
-          <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Submitted</span>
-            <Send size={16} className="text-[#6C1D5F]" />
-          </div>
-          <div className="text-[26px] font-black text-slate-850 leading-none">{stats.submitted}</div>
-        </div>
+        <Card className="bg-white rounded-xl border-l-4 border-l-[#6C1D5F] border-y-slate-200 border-r-slate-200 shadow-sm flex flex-col justify-between h-[100px] hover:shadow-md transition-shadow">
+          <CardContent className="p-5 flex flex-col justify-between h-full w-full">
+            <div className="flex justify-between items-start w-full">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Submitted</span>
+              <Send size={16} className="text-[#6C1D5F]" />
+            </div>
+            <div className="text-[26px] font-black text-slate-850 leading-none">{stats.submitted}</div>
+          </CardContent>
+        </Card>
         {/* Reviewed */}
-        <div className="bg-white rounded-xl p-5 border-l-4 border-emerald-500 shadow-sm flex flex-col justify-between h-[100px] hover:shadow-md transition-shadow">
-          <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Reviewed</span>
-            <CheckCircle size={16} className="text-emerald-500" />
-          </div>
-          <div className="text-[26px] font-black text-slate-850 leading-none">{stats.reviewed}</div>
-        </div>
+        <Card className="bg-white rounded-xl border-l-4 border-l-emerald-500 border-y-slate-200 border-r-slate-200 shadow-sm flex flex-col justify-between h-[100px] hover:shadow-md transition-shadow">
+          <CardContent className="p-5 flex flex-col justify-between h-full w-full">
+            <div className="flex justify-between items-start w-full">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Reviewed</span>
+              <CheckCircle size={16} className="text-emerald-500" />
+            </div>
+            <div className="text-[26px] font-black text-slate-850 leading-none">{stats.reviewed}</div>
+          </CardContent>
+        </Card>
         {/* Overdue */}
-        <div className="bg-white rounded-xl p-5 border-l-4 border-rose-500 shadow-sm flex flex-col justify-between h-[100px] hover:shadow-md transition-shadow">
-          <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Overdue</span>
-            <AlertTriangle size={16} className="text-rose-500" />
-          </div>
-          <div className="text-[26px] font-black text-slate-850 leading-none">{stats.overdue}</div>
-        </div>
+        <Card className="bg-white rounded-xl border-l-4 border-l-rose-500 border-y-slate-200 border-r-slate-200 shadow-sm flex flex-col justify-between h-[100px] hover:shadow-md transition-shadow">
+          <CardContent className="p-5 flex flex-col justify-between h-full w-full">
+            <div className="flex justify-between items-start w-full">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Overdue</span>
+              <AlertTriangle size={16} className="text-rose-500" />
+            </div>
+            <div className="text-[26px] font-black text-slate-850 leading-none">{stats.overdue}</div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* ── Assignments Card List ── */}
@@ -164,15 +176,15 @@ export default function StudentAssignmentDashboard() {
           }
 
           return (
-            <div
+            <Card
               key={a.id}
               className={`bg-white rounded-2xl shadow-sm border border-slate-200 border-l-4 ${accentBorder} flex flex-col overflow-hidden hover:shadow-md transition-all duration-300 group`}
             >
-              <div className="p-5 flex-1 flex flex-col gap-4">
-                <div className="flex justify-between items-start">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9.5px] font-bold uppercase tracking-wider border ${badgeStyle}`}>
+              <CardContent className="p-5 flex-1 flex flex-col gap-4 w-full">
+                <div className="flex justify-between items-start w-full">
+                  <Badge className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9.5px] font-bold uppercase tracking-wider border hover:bg-transparent ${badgeStyle}`}>
                     {a.displayStatus}
-                  </span>
+                  </Badge>
                   <span className={`text-[11px] font-semibold flex items-center gap-1 ${a.displayStatus === "Overdue" ? "text-rose-500" : "text-slate-400"}`}>
                     <Calendar size={12} />
                     {a.dueDate}
@@ -185,9 +197,9 @@ export default function StudentAssignmentDashboard() {
                   <p className="text-[12px] text-slate-400 mt-1">{a.course}</p>
                 </div>
                 
-                <div className="mt-auto pt-4 border-t border-slate-100 flex justify-between items-center">
+                <div className="mt-auto pt-4 border-t border-slate-100 flex justify-between items-center w-full">
                   <div className="flex flex-col">
-                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+                    <span className="text-[9px] text-slate-404 text-slate-400 font-bold uppercase tracking-wider">
                       {showScore ? "Score" : "Max Marks"}
                     </span>
                     <span className={`text-[12.5px] font-bold ${showScore ? "text-emerald-600" : "text-slate-700"}`}>
@@ -196,37 +208,39 @@ export default function StudentAssignmentDashboard() {
                   </div>
 
                   {a.displayStatus === "Pending" ? (
-                    <button
+                    <Button
                       onClick={() => navigate(`/student/assignments/${a.id}`)}
                       className="h-8 px-3.5 bg-[#6C1D5F] hover:bg-[#4A1E47] text-white text-[12px] font-bold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
                     >
                       Start Draft
-                    </button>
+                    </Button>
                   ) : a.displayStatus === "Needs Revision" ? (
-                    <button
+                    <Button
                       onClick={() => navigate(`/student/assignments/${a.id}/submissions`)}
                       className="h-8 px-3.5 bg-[#6C1D5F] hover:bg-[#4A1E47] text-white text-[12px] font-bold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
                     >
                       Resubmit
-                    </button>
+                    </Button>
                   ) : a.displayStatus === "Reviewed" ? (
-                    <button
+                    <Button
                       onClick={() => navigate(`/student/assignments/${a.id}/result`)}
+                      variant="outline"
                       className="h-8 px-3.5 bg-white border border-[#6C1D5F] text-[#6C1D5F] hover:bg-[#6C1D5F]/5 text-[12px] font-bold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
                     >
                       Feedback
-                    </button>
+                    </Button>
                   ) : (
-                    <button
+                    <Button
                       onClick={() => navigate(`/student/assignments/${a.id}`)}
+                      variant="outline"
                       className="h-8 px-3.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 text-[12px] font-bold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
                     >
                       View Details
-                    </button>
+                    </Button>
                   )}
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           );
         })}
       </div>

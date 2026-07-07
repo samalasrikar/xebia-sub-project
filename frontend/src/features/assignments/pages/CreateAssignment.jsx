@@ -4,6 +4,8 @@ import AppLayout from "@/app/layouts/AppLayout";
 import assignmentService from "../services/assignmentService";
 import { ChevronLeft } from "lucide-react";
 
+import { Button } from "@/shared/components/ui/button";
+
 import Toast from "../components/Toast";
 import PageHeader from "../components/PageHeader";
 import AssignmentBasicInfoForm from "../components/AssignmentBasicInfoForm";
@@ -11,6 +13,9 @@ import ResourceAttachments from "../components/ResourceAttachments";
 import SchedulingCard from "../components/SchedulingCard";
 import ScopeSelector from "../components/ScopeSelector";
 import SubmissionConfigCard from "../components/SubmissionConfigCard";
+import SelectBatchesModal from "../components/SelectBatchesModal";
+import SelectStudentsModal from "../components/SelectStudentsModal";
+import SelectCourseModal from "../components/SelectCourseModal";
 
 export default function CreateAssignment() {
   const { id } = useParams();
@@ -18,6 +23,10 @@ export default function CreateAssignment() {
   const isEdit = !!id;
 
   const [toast, setToast] = useState(null);
+  const [isBatchesModalOpen, setIsBatchesModalOpen] = useState(false);
+  const [isStudentsModalOpen, setIsStudentsModalOpen] = useState(false);
+  const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
+
   const [formData, setFormData] = useState({
     title: "",
     type: "pdf",
@@ -30,7 +39,10 @@ export default function CreateAssignment() {
     scope: "Entire Course",
     allowedFormats: ["File Upload (PDF, DOCX)"],
     maxUploadSize: "50",
-    attachments: []
+    attachments: [],
+    selectedBatches: [],
+    selectedStudents: [],
+    autoAssign: false
   });
 
   useEffect(() => {
@@ -38,7 +50,29 @@ export default function CreateAssignment() {
       assignmentService.getAssignmentById(id).then(data => {
         if (data) {
           let dateStr = "";
-          if (data.dueDate) dateStr = "2026-10-24";
+          if (data.dueDate) {
+            try {
+              const d = new Date(data.dueDate);
+              if (!isNaN(d.getTime())) {
+                dateStr = d.toISOString().split("T")[0];
+              }
+            } catch (e) {
+              dateStr = "2026-10-24";
+            }
+          }
+          
+          const scope = data.scope || "Entire Course";
+          const batchVal = data.batch || "";
+          
+          let selectedBatches = [];
+          let selectedStudents = [];
+          
+          if (scope === "Specific Batches") {
+            selectedBatches = batchVal ? batchVal.split(", ") : [];
+          } else if (scope === "Individual Students") {
+            selectedStudents = batchVal ? batchVal.split(", ") : [];
+          }
+
           setFormData({
             title: data.title || "",
             type: data.type || "pdf",
@@ -48,10 +82,13 @@ export default function CreateAssignment() {
             dueDate: dateStr,
             dueTime: "23:59",
             allowLate: true,
-            scope: data.scope || "Entire Course",
+            scope,
             allowedFormats: ["File Upload (PDF, DOCX)"],
             maxUploadSize: "50",
-            attachments: data.attachments || []
+            attachments: data.attachments || [],
+            selectedBatches,
+            selectedStudents,
+            autoAssign: false // load default or setting
           });
         }
       });
@@ -80,11 +117,18 @@ export default function CreateAssignment() {
       return;
     }
 
+    let batch = "B-2024-Q1"; // default
+    if (formData.scope === "Specific Batches") {
+      batch = formData.selectedBatches.length > 0 ? formData.selectedBatches.join(", ") : "No Batches Selected";
+    } else if (formData.scope === "Individual Students") {
+      batch = formData.selectedStudents.length > 0 ? formData.selectedStudents.join(", ") : "No Students Selected";
+    }
+
     const payload = {
       title: formData.title,
       course: "Cloud Native Engineering",
       courseId: "c1",
-      batch: formData.scope === "Entire Course" ? "B-2024-Q1" : "12 Students",
+      batch,
       scope: formData.scope,
       dueDate: formData.dueDate
         ? new Date(formData.dueDate + "T" + formData.dueTime).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
@@ -135,40 +179,44 @@ export default function CreateAssignment() {
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center gap-3">
-            <button
+            <Button
+              variant="outline"
+              size="icon-xs"
               onClick={() => navigate("/trainer/assignments")}
-              className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 transition-colors"
+              className="p-1.5 rounded-lg border border-slate-205 text-slate-500 hover:bg-slate-100 transition-colors cursor-pointer h-8 w-8"
             >
               <ChevronLeft size={16} />
-            </button>
+            </Button>
             <div>
               <h1 className="text-[21px] font-bold text-slate-900 tracking-tight leading-snug">
                 {isEdit ? "Edit Assignment" : "Create Assignment"}
               </h1>
-              <p className="text-[13px] text-slate-400 mt-0.5">
+              <p className="text-[13px] text-slate-404 text-slate-400 mt-0.5">
                 Configure coursework and grading rubrics for this cohort.
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-end">
-            <button
+            <Button
               onClick={() => navigate("/trainer/assignments")}
-              className="px-4 py-1.5 rounded-md text-[13px] font-medium text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition-colors"
+              variant="outline"
+              className="px-4 py-1.5 rounded-md text-[13px] font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer h-9"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => handleSave("Draft")}
-              className="px-4 py-1.5 rounded-md text-[13px] font-medium text-[#6C1D5F] bg-white border border-[#6C1D5F] hover:bg-[#6C1D5F]/5 transition-colors"
+              variant="outline"
+              className="px-4 py-1.5 rounded-md text-[13px] font-semibold text-[#6C1D5F] bg-white border border-[#6C1D5F] hover:bg-[#6C1D5F]/5 transition-colors cursor-pointer h-9"
             >
               Save Draft
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => handleSave("Active")}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-md text-[13px] font-medium text-white bg-[#6C1D5F] hover:bg-[#4A1E47] transition-colors shadow-sm"
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-md text-[13px] font-bold text-white bg-[#6C1D5F] hover:bg-[#4A1E47] transition-colors shadow-sm cursor-pointer h-9"
             >
               Publish
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -187,7 +235,16 @@ export default function CreateAssignment() {
           {/* Right Column */}
           <div className="lg:col-span-4 space-y-6">
             <SchedulingCard formData={formData} onChange={handleInputChange} />
-            <ScopeSelector scope={formData.scope} onChange={handleInputChange} />
+            <ScopeSelector
+              scope={formData.scope}
+              onChange={handleInputChange}
+              selectedBatches={formData.selectedBatches}
+              selectedStudents={formData.selectedStudents}
+              autoAssign={formData.autoAssign}
+              onOpenBatchesModal={() => setIsBatchesModalOpen(true)}
+              onOpenStudentsModal={() => setIsStudentsModalOpen(true)}
+              onOpenCourseModal={() => setIsCourseModalOpen(true)}
+            />
             <SubmissionConfigCard
               formData={formData}
               onChange={handleInputChange}
@@ -197,6 +254,31 @@ export default function CreateAssignment() {
         </div>
       </div>
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
+
+      {isBatchesModalOpen && (
+        <SelectBatchesModal
+          isOpen={isBatchesModalOpen}
+          onClose={() => setIsBatchesModalOpen(false)}
+          selectedBatches={formData.selectedBatches}
+          onApply={(batches) => handleInputChange("selectedBatches", batches)}
+        />
+      )}
+      {isStudentsModalOpen && (
+        <SelectStudentsModal
+          isOpen={isStudentsModalOpen}
+          onClose={() => setIsStudentsModalOpen(false)}
+          selectedStudents={formData.selectedStudents}
+          onApply={(students) => handleInputChange("selectedStudents", students)}
+        />
+      )}
+      {isCourseModalOpen && (
+        <SelectCourseModal
+          isOpen={isCourseModalOpen}
+          onClose={() => setIsCourseModalOpen(false)}
+          autoAssign={formData.autoAssign}
+          onApply={(val) => handleInputChange("autoAssign", val)}
+        />
+      )}
     </AppLayout>
   );
 }

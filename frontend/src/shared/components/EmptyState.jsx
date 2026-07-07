@@ -59,7 +59,7 @@ export default function EmptyState({
       {/* Title */}
       <h3
         className={cn(
-          "font-bold text-slate-800 tracking-tight",
+          "font-bold text-slate-800 tracking-tight w-full",
           isCompact ? "text-[13.5px] mb-1" : "text-lg mb-2"
         )}
       >
@@ -70,7 +70,7 @@ export default function EmptyState({
       {description && (
         <p
           className={cn(
-            "text-slate-500 leading-relaxed font-medium mx-auto",
+            "text-slate-500 leading-relaxed font-medium mx-auto w-full",
             isCompact ? "text-[11.5px] max-w-[240px]" : "text-[13px] max-w-[380px] mb-6"
           )}
         >

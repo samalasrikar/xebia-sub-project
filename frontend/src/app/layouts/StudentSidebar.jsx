@@ -5,7 +5,8 @@ import {
   ClipboardList,
   PanelLeftClose,
   PanelLeftOpen,
-  ArrowLeft
+  ArrowLeft,
+  HelpCircle
 } from "lucide-react";
 
 /* ─── Storage Key ─── */
@@ -14,6 +15,7 @@ const STORAGE_KEY = "lms-student-sidebar-collapsed";
 /* ─── Menu Configuration ─── */
 const MAIN_MENU = [
   { title: "Assignments",  path: "/student/assignments",  icon: ClipboardList },
+  { title: "Quizzes",      path: "/student/quizzes",      icon: HelpCircle },
 ];
 
 const BOTTOM_MENU = [];

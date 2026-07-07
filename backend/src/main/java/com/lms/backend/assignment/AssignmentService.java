@@ -1,19 +1,64 @@
 package com.lms.backend.assignment;
 
+import com.lms.backend.student.Student;
+import com.lms.backend.student.StudentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
+@SuppressWarnings("null")
 public class AssignmentService {
 
     @Autowired
     private AssignmentRepository assignmentRepository;
 
+    @Autowired
+    private StudentRepository studentRepository;
+
     public List<Assignment> getAllAssignments() {
         return assignmentRepository.findAll();
+    }
+
+    public List<Assignment> getAssignmentsForStudent(String studentId) {
+        Optional<Student> studentOpt = studentRepository.findById(studentId);
+        if (!studentOpt.isPresent()) {
+            return Collections.emptyList();
+        }
+        
+        Student student = studentOpt.get();
+        List<Assignment> allAssignments = assignmentRepository.findAll();
+        
+        return allAssignments.stream()
+                .filter(assignment -> {
+                    String scope = assignment.getScope();
+                    if (scope == null || scope.trim().isEmpty() || scope.equalsIgnoreCase("Entire Course")) {
+                        return true;
+                    }
+                    
+                    String batchField = assignment.getBatch();
+                    if (batchField == null || batchField.trim().isEmpty()) {
+                        return false;
+                    }
+                    
+                    List<String> items = Arrays.stream(batchField.split(","))
+                            .map(String::trim)
+                            .collect(Collectors.toList());
+                    
+                    if (scope.equalsIgnoreCase("Specific Batches")) {
+                        return items.stream().anyMatch(b -> b.equalsIgnoreCase(student.getBatch()));
+                    } else if (scope.equalsIgnoreCase("Individual Students")) {
+                        return items.stream().anyMatch(name -> name.equalsIgnoreCase(student.getName()));
+                    }
+                    
+                    return false;
+                })
+                .collect(Collectors.toList());
     }
 
     public Optional<Assignment> getAssignmentById(String id) {
@@ -62,3 +107,4 @@ public class AssignmentService {
         return false;
     }
 }
+

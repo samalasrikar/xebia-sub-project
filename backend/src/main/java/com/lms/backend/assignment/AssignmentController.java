@@ -16,7 +16,10 @@ public class AssignmentController {
     private AssignmentService assignmentService;
 
     @GetMapping
-    public ApiResponse<List<Assignment>> getAssignments() {
+    public ApiResponse<List<Assignment>> getAssignments(@RequestParam(required = false) String studentId) {
+        if (studentId != null && !studentId.trim().isEmpty()) {
+            return new ApiResponse<>(assignmentService.getAssignmentsForStudent(studentId));
+        }
         return new ApiResponse<>(assignmentService.getAllAssignments());
     }
 

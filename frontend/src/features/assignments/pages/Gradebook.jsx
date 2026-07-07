@@ -6,6 +6,14 @@ import DeleteDialog from "@/shared/components/DeleteDialog";
 import { Button } from "@/shared/components/ui/button";
 import { Download } from "lucide-react";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
+
 import PageHeader from "../components/PageHeader";
 import StatsCard from "../components/StatsCard";
 import SearchToolbar from "../components/SearchToolbar";
@@ -97,12 +105,13 @@ export default function Gradebook() {
           title="Gradebook"
           subtitle="Review submission details, grade assignments, and track class performance."
         >
-          <button
+          <Button
             onClick={handleExport}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-md text-[13px] font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm"
+            variant="outline"
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-md text-[13px] font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm h-9"
           >
             <Download size={14} /> Export CSV
-          </button>
+          </Button>
         </PageHeader>
 
         {/* Stats */}
@@ -120,24 +129,26 @@ export default function Gradebook() {
             onSearchChange={setSearchQuery}
             searchPlaceholder="Search students or assignments..."
           >
-            <select
-              className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-[12.5px] text-slate-650 focus:border-[#6C1D5F] outline-none"
-              value={selectedBatch}
-              onChange={(e) => setSelectedBatch(e.target.value)}
-            >
-              <option>All Batches</option>
-              {batches.map(b => <option key={b.id} value={b.title}>{b.title}</option>)}
-            </select>
-            <select
-              className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-[12.5px] text-slate-650 focus:border-[#6C1D5F] outline-none"
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-            >
-              <option>All Statuses</option>
-              <option>Graded</option>
-              <option>Pending</option>
-              <option>Late</option>
-            </select>
+            <Select value={selectedBatch} onValueChange={setSelectedBatch}>
+              <SelectTrigger className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-[12.5px] text-slate-650 h-8 font-semibold w-40">
+                <SelectValue placeholder="All Batches" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All Batches">All Batches</SelectItem>
+                {batches.map(b => <SelectItem key={b.id} value={b.title}>{b.title}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-[12.5px] text-slate-650 h-8 font-semibold w-40">
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All Statuses">All Statuses</SelectItem>
+                <SelectItem value="Graded">Graded</SelectItem>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Late">Late</SelectItem>
+              </SelectContent>
+            </Select>
           </SearchToolbar>
 
           <GradebookTable

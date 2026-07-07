@@ -12,8 +12,14 @@ const assignmentService = {
     return response.data.data;
   },
 
-  getAssignments: async (config) => {
-    const response = await api.get("/assignments", config);
+  createBatch: async (batchData, config) => {
+    const response = await api.post("/batches", batchData, config);
+    return response.data.data;
+  },
+
+  getAssignments: async (studentId, config) => {
+    const url = studentId ? `/assignments?studentId=${studentId}` : "/assignments";
+    const response = await api.get(url, config);
     return response.data.data;
   },
 
@@ -57,8 +63,24 @@ const assignmentService = {
     return response.data.data;
   },
 
+  rejectSubmission: async (id, gradeData, config) => {
+    const response = await api.post(`/submissions/${id}/reject`, gradeData, config);
+    return response.data.data;
+  },
+
   submitAssignment: async (studentId, submissionData, config) => {
     const response = await api.post(`/student/${studentId}/submit`, submissionData, config);
+    return response.data.data;
+  },
+
+  getStudents: async (batch, config) => {
+    const url = batch ? `/students?batch=${batch}` : "/students";
+    const response = await api.get(url, config);
+    return response.data.data;
+  },
+
+  createStudent: async (studentData, config) => {
+    const response = await api.post("/students", studentData, config);
     return response.data.data;
   }
 };
