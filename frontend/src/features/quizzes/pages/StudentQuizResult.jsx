@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Trophy, CheckCircle, XCircle, Clock, Percent, ArrowLeft, RefreshCw } from "lucide-react";
+import { Trophy, CheckCircle, XCircle, Clock, Percent, ArrowLeft, RefreshCw, Award } from "lucide-react";
 import quizService from "../services/quizService";
+import CertificateModal from "../components/CertificateModal";
 
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
@@ -15,6 +16,7 @@ export default function StudentQuizResult() {
   const [quiz, setQuiz] = useState(null);
   const [attempt, setAttempt] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isCertificateOpen, setIsCertificateOpen] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -81,14 +83,25 @@ export default function StudentQuizResult() {
           <ArrowLeft size={14} />
           <span>Back to Quizzes</span>
         </Button>
-        <Button
-          onClick={() => navigate(`/student/quizzes/${quizId}/play`)}
-          variant="outline"
-          className="border-[#6C1D5F] text-[#6C1D5F] rounded-xl hover:bg-[#6C1D5F]/5 font-bold text-xs flex items-center gap-1 h-8"
-        >
-          <RefreshCw size={12} />
-          <span>Retake Quiz</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          {stats.status === "Pass" && (
+            <Button
+              onClick={() => setIsCertificateOpen(true)}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 h-8 shadow-sm cursor-pointer"
+            >
+              <Award size={14} />
+              <span>View Certificate</span>
+            </Button>
+          )}
+          <Button
+            onClick={() => navigate(`/student/quizzes/${quizId}/play`)}
+            variant="outline"
+            className="border-[#6C1D5F] text-[#6C1D5F] rounded-xl hover:bg-[#6C1D5F]/5 font-bold text-xs flex items-center gap-1 h-8 cursor-pointer"
+          >
+            <RefreshCw size={12} />
+            <span>Retake Quiz</span>
+          </Button>
+        </div>
       </div>
 
       {/* Main Scorecard Banner */}
@@ -201,6 +214,18 @@ export default function StudentQuizResult() {
           })}
         </div>
       </div>
+      
+      {isCertificateOpen && (
+        <CertificateModal
+          isOpen={isCertificateOpen}
+          onClose={() => setIsCertificateOpen(false)}
+          studentName={attempt.studentName || "Jane Doe"}
+          courseName={quiz.course || "Cloud Native Engineering"}
+          quizName={quiz.name || "React State Management"}
+          date={stats.date}
+          percentage={stats.percentage}
+        />
+      )}
     </div>
   );
 }

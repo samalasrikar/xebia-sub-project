@@ -43,6 +43,8 @@ export default function ImportQuiz() {
   const [selectedBatches, setSelectedBatches] = useState([]);
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [autoAssign, setAutoAssign] = useState(false);
+  const [assignNow, setAssignNow] = useState(true);
+  const [hasTimeLimit, setHasTimeLimit] = useState(true);
 
   // Modals state
   const [isBatchesModalOpen, setIsBatchesModalOpen] = useState(false);
@@ -312,11 +314,14 @@ export default function ImportQuiz() {
     const courseObj = courses.find(c => c.id === selectedCourse);
     const courseTitle = courseObj ? courseObj.title : "Cloud Native Engineering";
 
+    let finalScope = assignNow ? scope : "Assign Later";
     let batchVal = "";
-    if (scope === "Specific Batches") {
-      batchVal = selectedBatches.length > 0 ? selectedBatches.join(", ") : "";
-    } else if (scope === "Individual Students") {
-      batchVal = selectedStudents.length > 0 ? selectedStudents.join(", ") : "";
+    if (assignNow) {
+      if (scope === "Specific Batches") {
+        batchVal = selectedBatches.length > 0 ? selectedBatches.join(", ") : "";
+      } else if (scope === "Individual Students") {
+        batchVal = selectedStudents.length > 0 ? selectedStudents.join(", ") : "";
+      }
     }
 
     const quizData = {
@@ -325,8 +330,8 @@ export default function ImportQuiz() {
       courseId: selectedCourse,
       course: courseTitle,
       batch: batchVal,
-      scope: scope,
-      duration: parseInt(duration) || 30,
+      scope: finalScope,
+      duration: hasTimeLimit && duration ? (parseInt(duration) || 30) : null,
       passingMarks: Math.ceil(totalQuestions * (passingMarksPercent / 100)),
       questions: questions.map(({ question, optionA, optionB, optionC, optionD, correctAnswer }) => ({
         question, optionA, optionB, optionC, optionD, correctAnswer
@@ -412,22 +417,35 @@ export default function ImportQuiz() {
 
 
 
-                  <div className="md:col-span-2">
-                    <ScopeSelector
-                      scope={scope}
-                      onChange={(field, value) => {
-                        if (field === "scope") setScope(value);
-                      }}
-                      selectedBatches={selectedBatches}
-                      selectedStudents={selectedStudents}
-                      autoAssign={autoAssign}
-                      onOpenBatchesModal={() => setIsBatchesModalOpen(true)}
-                      onOpenStudentsModal={() => setIsStudentsModalOpen(true)}
-                      onOpenCourseModal={() => setIsCourseModalOpen(true)}
-                    />
+                   <div className="md:col-span-2 space-y-3">
+                    <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <input
+                        type="checkbox"
+                        id="assignNowCheckbox"
+                        checked={assignNow}
+                        onChange={(e) => setAssignNow(e.target.checked)}
+                        className="rounded border-slate-350 text-[#6C1D5F] focus:ring-[#6C1D5F]/20 cursor-pointer w-4 h-4 accent-[#6C1D5F]"
+                      />
+                      <label htmlFor="assignNowCheckbox" className="text-xs font-bold text-slate-700 cursor-pointer select-none">
+                        Assign quiz to cohort/students now
+                      </label>
+                    </div>
+
+                    {assignNow && (
+                      <ScopeSelector
+                        scope={scope}
+                        onChange={(field, value) => {
+                          if (field === "scope") setScope(value);
+                        }}
+                        selectedBatches={selectedBatches}
+                        selectedStudents={selectedStudents}
+                        autoAssign={autoAssign}
+                        onOpenBatchesModal={() => setIsBatchesModalOpen(true)}
+                        onOpenStudentsModal={() => setIsStudentsModalOpen(true)}
+                        onOpenCourseModal={() => setIsCourseModalOpen(true)}
+                      />
+                    )}
                   </div>
-
-
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
@@ -439,19 +457,35 @@ export default function ImportQuiz() {
                           value={passingMarksPercent}
                           onChange={(e) => setPassingMarksPercent(e.target.value)}
                         />
-                        <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">%</span>
+                        <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-450 text-xs">%</span>
                       </div>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Duration (Mins)</label>
+                      <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Duration (Mins)</label>
+                        <label className="flex items-center gap-1 text-[10.5px] text-slate-400 font-medium cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={!hasTimeLimit}
+                            onChange={(e) => {
+                              setHasTimeLimit(!e.target.checked);
+                              if (e.target.checked) setDuration("");
+                            }}
+                            className="rounded border-slate-350 text-[#6C1D5F] focus:ring-[#6C1D5F]/20 cursor-pointer w-3 h-3 accent-[#6C1D5F]"
+                          />
+                          No limit
+                        </label>
+                      </div>
                       <div className="relative">
                         <input 
                           type="number" 
-                          className="w-full px-3.5 py-1.5 border border-slate-200 rounded-lg text-xs outline-none focus:border-[#6C1D5F] text-slate-700 font-semibold"
+                          disabled={!hasTimeLimit}
+                          placeholder="Untimed"
+                          className="w-full px-3.5 py-1.5 border border-slate-200 rounded-lg text-xs outline-none focus:border-[#6C1D5F] text-slate-700 font-semibold disabled:opacity-50"
                           value={duration}
                           onChange={(e) => setDuration(e.target.value)}
                         />
-                        <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">min</span>
+                        <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-405 text-xs">min</span>
                       </div>
                     </div>
                   </div>
@@ -904,7 +938,7 @@ export default function ImportQuiz() {
                  <div>
                   <h4 className="text-[10px] text-slate-405 font-bold uppercase tracking-wider">Quiz Parameters</h4>
                   <p className="text-xs text-slate-700 mt-1 font-semibold">
-                    {duration} Mins | Passing {passingMarksPercent}%
+                    {hasTimeLimit && duration ? `${duration} Mins` : "No Time Limit"} | Passing {passingMarksPercent}%
                   </p>
                 </div>
                 <div>

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { HelpCircle, Clock, Percent, Calendar, CheckCircle, Play, Eye, BookOpen, Star } from "lucide-react";
+import { HelpCircle, Clock, Percent, Calendar, CheckCircle, Play, Eye, BookOpen, Star, Award } from "lucide-react";
 import quizService from "../services/quizService";
+import CertificateModal from "../components/CertificateModal";
 
 export default function StudentQuizDashboard() {
   const navigate = useNavigate();
@@ -10,6 +11,8 @@ export default function StudentQuizDashboard() {
 
   const [quizzes, setQuizzes] = useState([]);
   const [stats, setStats] = useState({ assigned: 0, completed: 0, pending: 0, averageScore: 0 });
+  const [isCertificateOpen, setIsCertificateOpen] = useState(false);
+  const [selectedQuizForCertificate, setSelectedQuizForCertificate] = useState(null);
 
   useEffect(() => {
     quizService.getQuizzes(studentId).then(data => {
@@ -112,13 +115,27 @@ export default function StudentQuizDashboard() {
                       <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Score Achieved</span>
                       <span className="text-xs font-bold text-slate-800">{attempt.score} / {quiz.questionsCount} ({attempt.percentage}%)</span>
                     </div>
-                    <button
-                      onClick={() => navigate(`/student/quizzes/${quiz.id}/result`)}
-                      type="button"
-                      className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
-                    >
-                      <Eye size={14} /> Review
-                    </button>
+                    <div className="flex gap-1.5">
+                      {attempt.verdict === "Pass" && (
+                        <button
+                          onClick={() => {
+                            setSelectedQuizForCertificate(quiz);
+                            setIsCertificateOpen(true);
+                          }}
+                          type="button"
+                          className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer shadow-sm"
+                        >
+                          <Award size={13} /> Cert
+                        </button>
+                      )}
+                      <button
+                        onClick={() => navigate(`/student/quizzes/${quiz.id}/result`)}
+                        type="button"
+                        className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+                      >
+                        <Eye size={13} /> Review
+                      </button>
+                    </div>
                   </>
                 ) : (
                   <button
@@ -146,6 +163,21 @@ export default function StudentQuizDashboard() {
           </div>
         )}
       </div>
+
+      {isCertificateOpen && selectedQuizForCertificate && (
+        <CertificateModal
+          isOpen={isCertificateOpen}
+          onClose={() => {
+            setIsCertificateOpen(false);
+            setSelectedQuizForCertificate(null);
+          }}
+          studentName="Jane Doe"
+          courseName={selectedQuizForCertificate.course}
+          quizName={selectedQuizForCertificate.name}
+          date={selectedQuizForCertificate.attemptDate || "Jul 9, 2026"}
+          percentage={selectedQuizForCertificate.percentage}
+        />
+      )}
     </div>
   );
 }

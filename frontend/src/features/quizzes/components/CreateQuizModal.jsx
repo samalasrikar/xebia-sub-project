@@ -32,6 +32,8 @@ export default function CreateQuizModal({ isOpen, onClose, quizId, onSave }) {
   const [selectedBatches, setSelectedBatches] = useState([]);
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [autoAssign, setAutoAssign] = useState(false);
+  const [assignNow, setAssignNow] = useState(true);
+  const [hasTimeLimit, setHasTimeLimit] = useState(true);
 
   // Modals state
   const [isBatchesModalOpen, setIsBatchesModalOpen] = useState(false);
@@ -68,24 +70,44 @@ export default function CreateQuizModal({ isOpen, onClose, quizId, onSave }) {
             setName(quiz.name || "");
             setDescription(quiz.description || "");
             setSelectedCourse(quiz.courseId || "");
-            setDuration(quiz.duration || 20);
+            
+            const dur = quiz.duration;
+            if (dur && dur > 0) {
+              setDuration(dur);
+              setHasTimeLimit(true);
+            } else {
+              setDuration("");
+              setHasTimeLimit(false);
+            }
+            
             setPassingMarks(quiz.passingMarks || 7);
             setQuestions(quiz.questions && quiz.questions.length > 0 ? quiz.questions : [
               { question: "", optionA: "", optionB: "", optionC: "", optionD: "", correctAnswer: "A" }
             ]);
 
             const sc = quiz.scope || "Entire Course";
-            setScope(sc);
             const batchVal = quiz.batch || "";
             if (sc === "Specific Batches") {
+              setScope(sc);
               setSelectedBatches(batchVal ? batchVal.split(", ") : []);
               setSelectedStudents([]);
+              setAssignNow(true);
             } else if (sc === "Individual Students") {
+              setScope(sc);
               setSelectedStudents(batchVal ? batchVal.split(", ") : []);
               setSelectedBatches([]);
-            } else {
+              setAssignNow(true);
+            } else if (sc === "Entire Course") {
+              setScope(sc);
               setSelectedBatches([]);
               setSelectedStudents([]);
+              setAssignNow(true);
+            } else {
+              // sc === "Assign Later"
+              setScope("Entire Course");
+              setSelectedBatches([]);
+              setSelectedStudents([]);
+              setAssignNow(false);
             }
             setAutoAssign(false);
           }
@@ -95,11 +117,13 @@ export default function CreateQuizModal({ isOpen, onClose, quizId, onSave }) {
         setName("");
         setDescription("");
         setDuration(20);
+        setHasTimeLimit(true);
         setPassingMarks(7);
         setQuestions([{ question: "", optionA: "", optionB: "", optionC: "", optionD: "", correctAnswer: "A" }]);
         setScope("Entire Course");
         setSelectedBatches([]);
         setSelectedStudents([]);
+        setAssignNow(true);
         setAutoAssign(false);
         if (courses.length > 0) setSelectedCourse(courses[0].id);
       }
@@ -149,11 +173,14 @@ export default function CreateQuizModal({ isOpen, onClose, quizId, onSave }) {
     const courseObj = courses.find(c => c.id === selectedCourse);
     const courseTitle = courseObj ? courseObj.title : "Cloud Native Engineering";
 
+    let finalScope = assignNow ? scope : "Assign Later";
     let batchVal = "";
-    if (scope === "Specific Batches") {
-      batchVal = selectedBatches.length > 0 ? selectedBatches.join(", ") : "";
-    } else if (scope === "Individual Students") {
-      batchVal = selectedStudents.length > 0 ? selectedStudents.join(", ") : "";
+    if (assignNow) {
+      if (scope === "Specific Batches") {
+        batchVal = selectedBatches.length > 0 ? selectedBatches.join(", ") : "";
+      } else if (scope === "Individual Students") {
+        batchVal = selectedStudents.length > 0 ? selectedStudents.join(", ") : "";
+      }
     }
 
     const quizData = {
@@ -164,8 +191,8 @@ export default function CreateQuizModal({ isOpen, onClose, quizId, onSave }) {
       module: "",
       submodule: "",
       batch: batchVal,
-      scope: scope,
-      duration: Number(duration),
+      scope: finalScope,
+      duration: hasTimeLimit && duration ? Number(duration) : null,
       passingMarks: Number(passingMarks),
       questions,
       status
@@ -242,27 +269,58 @@ export default function CreateQuizModal({ isOpen, onClose, quizId, onSave }) {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="md:col-span-2 mt-2">
-                <ScopeSelector
-                  scope={scope}
-                  onChange={(field, value) => {
-                    if (field === "scope") setScope(value);
-                  }}
-                  selectedBatches={selectedBatches}
-                  selectedStudents={selectedStudents}
-                  autoAssign={autoAssign}
-                  onOpenBatchesModal={() => setIsBatchesModalOpen(true)}
-                  onOpenStudentsModal={() => setIsStudentsModalOpen(true)}
-                  onOpenCourseModal={() => setIsCourseModalOpen(true)}
-                />
+              <div className="md:col-span-2 space-y-3">
+                <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <input
+                    type="checkbox"
+                    id="assignNowCheckbox"
+                    checked={assignNow}
+                    onChange={(e) => setAssignNow(e.target.checked)}
+                    className="rounded border-slate-350 text-[#6C1D5F] focus:ring-[#6C1D5F]/20 cursor-pointer w-4 h-4 accent-[#6C1D5F]"
+                  />
+                  <label htmlFor="assignNowCheckbox" className="text-xs font-bold text-slate-700 cursor-pointer select-none">
+                    Assign quiz to cohort/students now
+                  </label>
+                </div>
+                
+                {assignNow && (
+                  <ScopeSelector
+                    scope={scope}
+                    onChange={(field, value) => {
+                      if (field === "scope") setScope(value);
+                    }}
+                    selectedBatches={selectedBatches}
+                    selectedStudents={selectedStudents}
+                    autoAssign={autoAssign}
+                    onOpenBatchesModal={() => setIsBatchesModalOpen(true)}
+                    onOpenStudentsModal={() => setIsStudentsModalOpen(true)}
+                    onOpenCourseModal={() => setIsCourseModalOpen(true)}
+                  />
+                )}
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-500">Duration (mins)</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-semibold text-slate-500">Duration (mins)</label>
+                    <label className="flex items-center gap-1 text-[10.5px] text-slate-400 font-medium cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={!hasTimeLimit}
+                        onChange={(e) => {
+                          setHasTimeLimit(!e.target.checked);
+                          if (e.target.checked) setDuration("");
+                        }}
+                        className="rounded border-slate-350 text-[#6C1D5F] focus:ring-[#6C1D5F]/20 cursor-pointer w-3.5 h-3.5 accent-[#6C1D5F]"
+                      />
+                      No limit
+                    </label>
+                  </div>
                   <Input
                     type="number"
                     min="1"
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 focus:border-slate-350 focus:bg-white rounded-lg text-xs outline-none transition-all text-slate-800 h-9"
+                    disabled={!hasTimeLimit}
+                    placeholder="Untimed"
+                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 focus:border-slate-350 focus:bg-white rounded-lg text-xs outline-none transition-all text-slate-800 h-9 disabled:opacity-50"
                     value={duration}
                     onChange={(e) => setDuration(e.target.value)}
                   />
