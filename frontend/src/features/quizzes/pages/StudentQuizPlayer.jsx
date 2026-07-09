@@ -17,6 +17,7 @@ export default function StudentQuizPlayer() {
   const [flagged, setFlagged] = useState({});
   const [timeLeft, setTimeLeft] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [startTime] = useState(Date.now());
 
   useEffect(() => {
     Promise.all([
@@ -28,7 +29,11 @@ export default function StudentQuizPlayer() {
           ...quizData,
           questions: questionsData
         });
-        setTimeLeft((quizData.duration || 20) * 60);
+        if (quizData.duration && quizData.duration > 0) {
+          setTimeLeft(quizData.duration * 60);
+        } else {
+          setTimeLeft(null);
+        }
       }
     }).catch(err => {
       console.error("Failed to load quiz details", err);
@@ -73,10 +78,13 @@ export default function StudentQuizPlayer() {
       studentAnswer: answers[idx] || ""
     }));
 
+    const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+    const elapsedMins = Math.round(elapsedSeconds / 60) || 1;
+
     const payload = {
       studentId,
       studentName,
-      timeTaken: `${Math.round(((quiz.duration * 60) - timeLeft) / 60) || 1} mins`,
+      timeTaken: `${elapsedMins} mins`,
       answers: submissionAnswers
     };
 
@@ -143,7 +151,9 @@ export default function StudentQuizPlayer() {
           {/* Timer */}
           <div className="flex items-center gap-3 bg-surface-container-highest px-6 py-2.5 rounded-xl border-2 border-primary shadow-sm">
             <Timer size={20} className="text-primary" />
-            <span className="font-mono text-[20px] font-bold text-primary leading-none">{formatTime(timeLeft)}</span>
+            <span className="font-mono text-[16px] font-bold text-primary leading-none">
+              {timeLeft !== null ? formatTime(timeLeft) : "Untimed"}
+            </span>
           </div>
         </div>
       </header>
