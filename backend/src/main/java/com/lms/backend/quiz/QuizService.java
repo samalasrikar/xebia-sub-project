@@ -14,6 +14,7 @@ import com.lms.backend.student.Student;
 import com.lms.backend.student.StudentRepository;
 
 @Service
+@SuppressWarnings("null")
 public class QuizService {
 
     @Autowired

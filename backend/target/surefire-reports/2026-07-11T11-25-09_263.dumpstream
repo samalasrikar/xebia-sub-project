@@ -1,4 +1,4 @@
-# Created at 2026-07-08T09:02:55.067
+# Created at 2026-07-11T11:25:09.404
 Boot Manifest-JAR contains absolute paths in classpath 'E:\xebia\xebia-sub-project\backend\target\test-classes'
 Hint: <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
 'other' has different root
