@@ -1,19 +1,21 @@
 package com.lms.backend.batch;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
-@SuppressWarnings("null")
 public class BatchService {
 
-    @Autowired
-    private BatchRepository batchRepository;
+    private final BatchRepository batchRepository;
+
+    public BatchService(BatchRepository batchRepository) {
+        this.batchRepository = batchRepository;
+    }
 
     @PostConstruct
     public void seedInitialData() {
@@ -66,7 +68,7 @@ public class BatchService {
 
     public Batch createBatch(Batch batch) {
         if (batch.getId() == null || batch.getId().trim().isEmpty()) {
-            batch.setId("BT-" + (1000 + (int)(Math.random() * 9000)));
+            batch.setId("BT-" + UUID.randomUUID().toString().substring(0, 8));
         }
         if (batch.getStatus() == null || batch.getStatus().trim().isEmpty()) {
             batch.setStatus("Active");

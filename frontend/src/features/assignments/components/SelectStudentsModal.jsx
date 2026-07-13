@@ -116,7 +116,9 @@ export default function SelectStudentsModal({ isOpen, onClose, selectedStudents,
     const idMatch = student.id?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSearch = nameMatch || idMatch;
     
-    const matchesBatch = selectedBatchFilter === "All Batches" || student.batch === selectedBatchFilter;
+    const matchesBatch = selectedBatchFilter === "All Batches" || 
+                         student.batch === selectedBatchFilter ||
+                         batches.find(b => b.id === selectedBatchFilter)?.studentIds?.includes(student.id);
     return matchesSearch && matchesBatch;
   });
 

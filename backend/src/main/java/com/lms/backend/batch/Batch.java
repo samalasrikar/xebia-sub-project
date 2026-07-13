@@ -50,7 +50,6 @@ public class Batch {
 
     public void setTitle(String title) {
         this.title = title;
-        this.name = title; // Sync name with title
     }
 
     public String getName() {
@@ -59,7 +58,6 @@ public class Batch {
 
     public void setName(String name) {
         this.name = name;
-        this.title = name; // Sync title with name
     }
 
     public String getCourse() {

@@ -1,7 +1,6 @@
 package com.lms.backend.batch;
 
 import com.lms.backend.common.ApiResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,8 +11,11 @@ import java.util.List;
 @RequestMapping("/batches")
 public class BatchController {
 
-    @Autowired
-    private BatchService batchService;
+    private final BatchService batchService;
+
+    public BatchController(BatchService batchService) {
+        this.batchService = batchService;
+    }
 
     @GetMapping
     public ApiResponse<List<Batch>> getBatches() {

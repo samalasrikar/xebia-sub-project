@@ -1,7 +1,6 @@
 package com.lms.backend.submission;
 
 import com.lms.backend.common.ApiResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,8 +10,11 @@ import java.util.List;
 @RestController
 public class SubmissionController {
 
-    @Autowired
-    private SubmissionService submissionService;
+    private final SubmissionService submissionService;
+
+    public SubmissionController(SubmissionService submissionService) {
+        this.submissionService = submissionService;
+    }
 
     @GetMapping("/submissions")
     public ApiResponse<List<Submission>> getSubmissions() {

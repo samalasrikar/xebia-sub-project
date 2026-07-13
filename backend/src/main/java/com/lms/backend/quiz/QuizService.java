@@ -2,7 +2,8 @@ package com.lms.backend.quiz;
 
 import com.lms.backend.quiz.dto.QuizSubmitRequest;
 import com.lms.backend.quiz.dto.QuizStatsDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
@@ -14,17 +15,21 @@ import com.lms.backend.student.Student;
 import com.lms.backend.student.StudentRepository;
 
 @Service
-@SuppressWarnings("null")
 public class QuizService {
 
-    @Autowired
-    private QuizRepository quizRepository;
+    private static final Logger log = LoggerFactory.getLogger(QuizService.class);
 
-    @Autowired
-    private QuizAttemptRepository quizAttemptRepository;
+    private final QuizRepository quizRepository;
+    private final QuizAttemptRepository quizAttemptRepository;
+    private final StudentRepository studentRepository;
 
-    @Autowired
-    private StudentRepository studentRepository;
+    public QuizService(QuizRepository quizRepository,
+                       QuizAttemptRepository quizAttemptRepository,
+                       StudentRepository studentRepository) {
+        this.quizRepository = quizRepository;
+        this.quizAttemptRepository = quizAttemptRepository;
+        this.studentRepository = studentRepository;
+    }
 
     @PostConstruct
     public void seedInitialData() {
@@ -268,9 +273,15 @@ public class QuizService {
         attempt.setId("attempt_" + System.currentTimeMillis());
         attempt.setQuizId(quizId);
         attempt.setStudentId(request.getStudentId());
-        attempt.setStudentName(request.getStudentName() != null ? request.getStudentName() : "Jane Doe");
+        String resolvedStudentName = request.getStudentName();
+        if (resolvedStudentName == null || resolvedStudentName.trim().isEmpty()) {
+            resolvedStudentName = studentRepository.findById(request.getStudentId())
+                    .map(Student::getName)
+                    .orElse(request.getStudentId());
+        }
+        attempt.setStudentName(resolvedStudentName);
         attempt.setCourse(quiz.getCourse());
-        attempt.setBatch(quiz.getBatch() != null ? quiz.getBatch() : "B-2024-Q1");
+        attempt.setBatch(quiz.getBatch() != null ? quiz.getBatch() : "");
         attempt.setScore(correctCount);
         attempt.setPercentage(percentage);
         attempt.setAttemptDate(LocalDate.now().format(DateTimeFormatter.ofPattern("MMM d, yyyy")));
@@ -290,7 +301,7 @@ public class QuizService {
         long drafts = quizzes.stream().filter(q -> "Draft".equalsIgnoreCase(q.getStatus())).count();
         long imported = quizzes.stream().filter(q -> "Draft".equalsIgnoreCase(q.getStatus()) && q.getQuestionsCount() > 0).count();
 
-        String avgScorePercent = "78%";
+        String avgScorePercent = "0%";
         if (!attempts.isEmpty()) {
             double sum = attempts.stream().mapToDouble(QuizAttempt::getPercentage).sum();
             avgScorePercent = Math.round(sum / attempts.size()) + "%";

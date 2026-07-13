@@ -1,7 +1,6 @@
 package com.lms.backend.assignment;
 
 import com.lms.backend.common.ApiResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,8 +11,11 @@ import java.util.List;
 @RequestMapping("/assignments")
 public class AssignmentController {
 
-    @Autowired
-    private AssignmentService assignmentService;
+    private final AssignmentService assignmentService;
+
+    public AssignmentController(AssignmentService assignmentService) {
+        this.assignmentService = assignmentService;
+    }
 
     @GetMapping
     public ApiResponse<List<Assignment>> getAssignments(@RequestParam(required = false) String studentId) {

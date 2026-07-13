@@ -173,7 +173,10 @@ export default function SelectBatchesModal({ isOpen, onClose, selectedBatches, o
             <div className="text-center py-12 text-slate-400 text-xs">Loading cohorts...</div>
           ) : filteredBatches.map((batch) => {
             const isSelected = localSelection.includes(batch.id);
-            const batchStudentsCount = students.filter(s => s.batch?.toLowerCase() === batch.id?.toLowerCase()).length;
+            const batchStudentsCount = students.filter(s => 
+               batch.studentIds?.includes(s.id) || 
+               s.batch?.toLowerCase() === batch.id?.toLowerCase()
+             ).length;
             
             return (
               <label

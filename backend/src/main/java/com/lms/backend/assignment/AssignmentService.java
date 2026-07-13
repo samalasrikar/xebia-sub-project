@@ -4,7 +4,8 @@ import com.lms.backend.student.Student;
 import com.lms.backend.student.StudentRepository;
 import com.lms.backend.submission.Submission;
 import com.lms.backend.submission.SubmissionRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -18,27 +19,26 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@SuppressWarnings("null")
 public class AssignmentService {
 
-    @Autowired
-    private AssignmentRepository assignmentRepository;
+    private static final Logger log = LoggerFactory.getLogger(AssignmentService.class);
 
-    @Autowired
-    private StudentRepository studentRepository;
+    private final AssignmentRepository assignmentRepository;
+    private final StudentRepository studentRepository;
+    private final SubmissionRepository submissionRepository;
 
-    @Autowired
-    private SubmissionRepository submissionRepository;
+    public AssignmentService(AssignmentRepository assignmentRepository,
+                             StudentRepository studentRepository,
+                             SubmissionRepository submissionRepository) {
+        this.assignmentRepository = assignmentRepository;
+        this.studentRepository = studentRepository;
+        this.submissionRepository = submissionRepository;
+    }
 
     public List<Assignment> getAllAssignments() {
-
-        List<Assignment> assignments =
-                assignmentRepository.findAll();
-
-        // Auto-update assignment statuses
+        List<Assignment> assignments = assignmentRepository.findAll();
         assignments.forEach(this::updateAssignmentStatusBasedOnDueDate);
-
-        return assignmentRepository.findAll();
+        return assignments;
     }
 
     public List<Assignment> getAssignmentsForStudent(String studentId) {
@@ -111,11 +111,11 @@ public class AssignmentService {
                             isOverdue = true;
                         }
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        log.warn("Failed to parse due date '{}': {}", a.getDueDate(), e.getMessage());
                     }
                 }
 
-                if (isOverdue || "a5".equalsIgnoreCase(a.getId())) {
+                if (isOverdue) {
                     a.setDisplayStatus("Overdue");
                 } else if ("Active".equalsIgnoreCase(a.getStatus()) || "Pending".equalsIgnoreCase(a.getStatus())) {
                     a.setDisplayStatus("Pending");
@@ -343,9 +343,7 @@ public class AssignmentService {
             }
 
         } catch (Exception e) {
-
-            e.printStackTrace();
-
+            log.warn("Failed to parse due date '{}': {}", assignment.getDueDate(), e.getMessage());
             assignment.setStatus("Active");
         }
     }

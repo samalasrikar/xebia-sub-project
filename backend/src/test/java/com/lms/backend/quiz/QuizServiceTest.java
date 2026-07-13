@@ -1,6 +1,7 @@
 package com.lms.backend.quiz;
 
 import com.lms.backend.quiz.dto.QuizSubmitRequest;
+import com.lms.backend.student.StudentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -23,6 +24,9 @@ public class QuizServiceTest {
 
     @Mock
     private QuizAttemptRepository quizAttemptRepository;
+
+    @Mock
+    private StudentRepository studentRepository;
 
     @InjectMocks
     private QuizService quizService;

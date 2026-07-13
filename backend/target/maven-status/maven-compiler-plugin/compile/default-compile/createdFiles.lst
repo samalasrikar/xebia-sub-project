@@ -31,6 +31,7 @@ com\lms\backend\course\CourseService.class
 com\lms\backend\quiz\QuizAttemptRepository.class
 com\lms\backend\batch\Batch.class
 com\lms\backend\assignment\AssignmentController.class
+com\lms\backend\common\GlobalExceptionHandler.class
 com\lms\backend\course\CourseRepository.class
 com\lms\backend\quiz\dto\QuizSubmitRequest$AnswerSubmission.class
 com\lms\backend\quiz\dto\QuizSubmitRequest.class

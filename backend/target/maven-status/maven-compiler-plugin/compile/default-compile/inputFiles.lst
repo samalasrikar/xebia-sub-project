@@ -10,6 +10,7 @@ E:\xebia\xebia-sub-project\backend\src\main\java\com\lms\backend\batch\BatchRepo
 E:\xebia\xebia-sub-project\backend\src\main\java\com\lms\backend\batch\BatchService.java
 E:\xebia\xebia-sub-project\backend\src\main\java\com\lms\backend\common\ApiResponse.java
 E:\xebia\xebia-sub-project\backend\src\main\java\com\lms\backend\common\CorsConfig.java
+E:\xebia\xebia-sub-project\backend\src\main\java\com\lms\backend\common\GlobalExceptionHandler.java
 E:\xebia\xebia-sub-project\backend\src\main\java\com\lms\backend\course\Course.java
 E:\xebia\xebia-sub-project\backend\src\main\java\com\lms\backend\course\CourseController.java
 E:\xebia\xebia-sub-project\backend\src\main\java\com\lms\backend\course\CourseRepository.java

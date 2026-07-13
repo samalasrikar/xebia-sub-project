@@ -155,6 +155,10 @@ export default function CertificateModal({
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
 
+    const absoluteLogoUrl = xebiaLogo.startsWith("data:") 
+      ? xebiaLogo 
+      : (xebiaLogo.startsWith("http") ? xebiaLogo : window.location.origin + xebiaLogo);
+
     printWindow.document.write(`
       <html>
         <head>
@@ -260,7 +264,7 @@ export default function CertificateModal({
         <body>
           <div class="cert-container">
             <div class="cert-inner">
-              <img class="logo" src="${xebiaLogo}" alt="Xebia" />
+              <img class="logo" src="${absoluteLogoUrl}" alt="Xebia" />
               <h1 class="title">CERTIFICATE OF COMPLETION</h1>
               <div class="divider"></div>
               <p class="subtitle">This is to certify that</p>

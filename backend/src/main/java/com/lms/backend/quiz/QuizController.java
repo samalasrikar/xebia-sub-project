@@ -4,7 +4,6 @@ import com.lms.backend.common.ApiResponse;
 import com.lms.backend.quiz.dto.QuizQuestionDto;
 import com.lms.backend.quiz.dto.QuizSubmitRequest;
 import com.lms.backend.quiz.dto.QuizStatsDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +17,11 @@ import java.util.stream.Collectors;
 @RequestMapping("/quizzes")
 public class QuizController {
 
-    @Autowired
-    private QuizService quizService;
+    private final QuizService quizService;
+
+    public QuizController(QuizService quizService) {
+        this.quizService = quizService;
+    }
 
     @GetMapping
     public ApiResponse<List<Quiz>> getAllQuizzes(@RequestParam(required = false) String studentId) {
@@ -144,7 +146,7 @@ public class QuizController {
                             .filter(q -> q.getOptionB() != null && !q.getOptionB().trim().isEmpty())
                             .filter(q -> q.getOptionC() != null && !q.getOptionC().trim().isEmpty())
                             .filter(q -> q.getOptionD() != null && !q.getOptionD().trim().isEmpty())
-                            .filter(q -> List.of("A", "B", "C", "D").contains(q.getCorrectAnswer().toUpperCase()))
+                            .filter(q -> q.getCorrectAnswer() != null && List.of("A", "B", "C", "D").contains(q.getCorrectAnswer().toUpperCase()))
                             .collect(Collectors.toList());
 
                     // Deduplicate by question text

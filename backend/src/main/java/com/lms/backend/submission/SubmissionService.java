@@ -4,7 +4,8 @@ import com.lms.backend.assignment.Assignment;
 import com.lms.backend.assignment.AssignmentRepository;
 import com.lms.backend.student.Student;
 import com.lms.backend.student.StudentRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -17,17 +18,21 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@SuppressWarnings("null")
 public class SubmissionService {
 
-    @Autowired
-    private SubmissionRepository submissionRepository;
+    private static final Logger log = LoggerFactory.getLogger(SubmissionService.class);
 
-    @Autowired
-    private AssignmentRepository assignmentRepository;
+    private final SubmissionRepository submissionRepository;
+    private final AssignmentRepository assignmentRepository;
+    private final StudentRepository studentRepository;
 
-    @Autowired
-    private StudentRepository studentRepository;
+    public SubmissionService(SubmissionRepository submissionRepository,
+                             AssignmentRepository assignmentRepository,
+                             StudentRepository studentRepository) {
+        this.submissionRepository = submissionRepository;
+        this.assignmentRepository = assignmentRepository;
+        this.studentRepository = studentRepository;
+    }
 
     public List<Submission> getAllSubmissions() {
         return submissionRepository.findAll();
@@ -95,19 +100,21 @@ public class SubmissionService {
             Submission saved = submissionRepository.save(submission);
 
             // Auto-update assignment status if needed
-            assignmentRepository.findById(submission.getAssignmentId()).ifPresent(assignment -> {
+            if (submission.getAssignment() != null) {
+                Assignment assignment = submission.getAssignment();
                 if ("Active".equalsIgnoreCase(assignment.getStatus())) {
                     List<Submission> allSubmissions = submissionRepository.findAll();
                     boolean remainingPending = allSubmissions.stream()
-                            .anyMatch(s -> s.getAssignmentId().equals(submission.getAssignmentId()) 
-                                    && "Submitted".equalsIgnoreCase(s.getStatus()) 
+                            .anyMatch(s -> s.getAssignment() != null
+                                    && s.getAssignment().getId().equals(assignment.getId())
+                                    && "Submitted".equalsIgnoreCase(s.getStatus())
                                     && !s.getId().equals(id));
                     if (!remainingPending) {
                         assignment.setStatus("Completed");
                         assignmentRepository.save(assignment);
                     }
                 }
-            });
+            }
 
             return saved;
         });
@@ -118,9 +125,14 @@ public class SubmissionService {
         submissionRepository.findByStudentIdAndAssignmentId(studentId, submissionData.getAssignmentId())
                 .ifPresent(existing -> submissionRepository.delete(existing));
 
-        // Fetch student details from DB to enforce backend authority
-        String studentName = "Jane Doe";
-        String batch = "Batch 2023-A";
+        // Fetch assignment — fail-fast if not found
+        Assignment assignment = assignmentRepository.findById(submissionData.getAssignmentId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Assignment not found: " + submissionData.getAssignmentId()));
+
+        // Fetch student details from DB
+        String studentName = studentId;
+        String batch = "";
         Optional<Student> studentOpt = studentRepository.findById(studentId);
         if (studentOpt.isPresent()) {
             studentName = studentOpt.get().getName();
@@ -133,9 +145,8 @@ public class SubmissionService {
                 "sub_" + System.currentTimeMillis()
         );
 
-        submission.setAssignmentId(
-                submissionData.getAssignmentId()
-        );
+        // Set via @ManyToOne relationship — this is what actually persists the FK
+        submission.setAssignment(assignment);
 
         submission.setAssignmentTitle(
                 submissionData.getAssignmentTitle()
@@ -151,79 +162,37 @@ public class SubmissionService {
                 Instant.now().toString()
         );
 
-        // Determine submission status
-        final String[] submissionStatus = {"Submitted"};
+        // Determine submission status based on due date
+        String submissionStatus = "Submitted";
 
-        Optional<Assignment> assignmentOptional =
-                assignmentRepository.findById(
-                        submissionData.getAssignmentId()
-                );
+        try {
+            if (assignment.getDueDate() != null &&
+                    !assignment.getDueDate().isEmpty()) {
 
-        if (assignmentOptional.isPresent()) {
+                String dueDateString = assignment.getDueDate();
+                LocalDateTime dueDateTime;
 
-            Assignment assignment =
-                    assignmentOptional.get();
-
-            // Set JPA relationship
-            submission.setAssignment(assignment);
-
-            try {
-
-                if (assignment.getDueDate() != null &&
-                        !assignment.getDueDate().isEmpty()) {
-
-                    String dueDateString =
-                            assignment.getDueDate();
-
-                    LocalDateTime dueDateTime;
-
-                    // Full ISO format
-                    if (dueDateString.contains("T")) {
-
-                        dueDateTime =
-                                Instant.parse(dueDateString)
-                                        .atZone(
-                                                ZoneId.systemDefault()
-                                        )
-                                        .toLocalDateTime();
-
-                    } else {
-
-                        // yyyy-MM-dd format
-                        DateTimeFormatter formatter =
-        DateTimeFormatter.ofPattern(
-                "MMM d, yyyy"
-        );
-
-LocalDate dueDate =
-        LocalDate.parse(
-                dueDateString,
-                formatter
-        );
-
-dueDateTime =
-        dueDate.atTime(23, 59);
-                    }
-
-                    LocalDateTime now =
-                            LocalDateTime.now();
-                    System.out.println("Due Date Raw: " + assignment.getDueDate());
-                    System.out.println("Parsed Due Date: " + dueDateTime);
-                    System.out.println("Current Time: " + now);
-                    if (now.isAfter(dueDateTime)) {
-
-                        submissionStatus[0] =
-                                "Late Submitted";
-                    }
+                // Full ISO format
+                if (dueDateString.contains("T")) {
+                    dueDateTime =
+                            Instant.parse(dueDateString)
+                                    .atZone(ZoneId.systemDefault())
+                                    .toLocalDateTime();
+                } else {
+                    // yyyy-MM-dd format (consistent with AssignmentService)
+                    LocalDate dueDate = LocalDate.parse(dueDateString);
+                    dueDateTime = dueDate.atTime(23, 59);
                 }
 
-            } catch (Exception e) {
-
-                e.printStackTrace();
+                if (LocalDateTime.now().isAfter(dueDateTime)) {
+                    submissionStatus = "Late Submitted";
+                }
             }
+        } catch (Exception e) {
+            log.warn("Failed to parse due date '{}': {}", assignment.getDueDate(), e.getMessage());
         }
 
-        submission.setStatus(submissionStatus[0]);
+        submission.setStatus(submissionStatus);
 
         submission.setAttempt(
                 submissionData.getAttempt() != null
@@ -268,6 +237,7 @@ dueDateTime =
 
         return submissionRepository.save(submission);
     }
+
     public java.util.Map<String, Object> getGradebookStats() {
         List<Submission> submissions = submissionRepository.findAll();
         long total = submissions.size();
@@ -281,7 +251,7 @@ dueDateTime =
         String average = "N/A";
         if (!graded.isEmpty()) {
             double avg = graded.stream().mapToInt(Submission::getScore).average().orElse(0.0);
-            average = Math.round(avg) + "%";
+            average = String.valueOf(Math.round(avg));
         }
 
         java.util.Map<String, Object> stats = new java.util.HashMap<>();
