@@ -174,9 +174,12 @@ export default function SelectStudentsModal({ isOpen, onClose, selectedStudents,
                     <SelectValue placeholder="Cohort / Batch" />
                   </SelectTrigger>
                   <SelectContent>
-                    {batches.map(b => (
-                      <SelectItem key={b.id} value={b.id}>{b.id} - {b.title}</SelectItem>
-                    ))}
+                    {batches.map(b => {
+                      const bName = b.name || b.title || b.id;
+                      return (
+                        <SelectItem key={b.id} value={b.id}>{b.id} - {bName}</SelectItem>
+                      );
+                    })}
                     {batches.length === 0 && <SelectItem value="none" disabled>No Batches Created</SelectItem>}
                   </SelectContent>
                 </Select>

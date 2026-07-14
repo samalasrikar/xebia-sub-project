@@ -57,11 +57,11 @@ export default function CertificateModal({
     // Load Xebia Logo Image
     const logoImg = new Image();
     logoImg.onload = () => {
-      // Draw Logo at top center (approx 240x80)
-      const logoWidth = 240;
-      const logoHeight = 80;
-      const logoX = 960 - (logoWidth / 2);
-      const logoY = 130;
+      // Draw Logo at top-left inside inner border (approx 200x67)
+      const logoWidth = 200;
+      const logoHeight = 67;
+      const logoX = 100;
+      const logoY = 100;
       ctx.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
 
       // Draw all certificate text
@@ -197,10 +197,13 @@ export default function CertificateModal({
               align-items: center;
               justify-content: center;
               padding: 40px;
+              position: relative;
             }
             .logo {
-              height: 60px;
-              margin-bottom: 25px;
+              position: absolute;
+              top: 25px;
+              left: 25px;
+              height: 40px;
             }
             .title {
               color: #6C1D5F;
@@ -346,7 +349,7 @@ export default function CertificateModal({
               <div className="absolute bottom-2 right-2 w-8 h-8 border-b border-r border-[#C5A880]" />
 
               {/* Logo */}
-              <img src={xebiaLogo} alt="Xebia" className="h-10 object-contain mb-4" />
+              <img src={xebiaLogo} alt="Xebia" className="absolute top-5 left-5 h-8 object-contain" />
 
               {/* Title */}
               <h2 className="text-[#6C1D5F] font-black text-center tracking-wider text-base uppercase leading-none">
