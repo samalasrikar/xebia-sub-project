@@ -147,9 +147,11 @@ const filteredAssignments = useMemo(() => {
         selectedCourse === "All Courses" ||
         a.course === selectedCourse;
 
+      const selectedBatchObj = batches.find(b => b.id === selectedBatch);
       const matchesBatch =
         selectedBatch === "All Batches" ||
-        a.batch === selectedBatch;
+        a.batch === selectedBatch ||
+        (selectedBatchObj && (a.batch === selectedBatchObj.name || a.batch === selectedBatchObj.title));
 
       const matchesStatus =
         selectedStatus === "All Statuses" ||
@@ -176,7 +178,8 @@ const filteredAssignments = useMemo(() => {
   selectedCourse,
   selectedBatch,
   selectedStatus,
-  selectedDate
+  selectedDate,
+  batches
 ]);
 
   return (
@@ -232,7 +235,10 @@ const filteredAssignments = useMemo(() => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All Batches">All Batches</SelectItem>
-                  {batches.map(b => <SelectItem key={b.id} value={b.title}>{b.title}</SelectItem>)}
+                  {batches.map(b => {
+                    const bName = b.name || b.title || b.id;
+                    return <SelectItem key={b.id} value={b.id}>{bName}</SelectItem>;
+                  })}
                 </SelectContent>
               </Select>
             </div>

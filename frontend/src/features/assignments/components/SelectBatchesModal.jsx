@@ -199,7 +199,7 @@ export default function SelectBatchesModal({ isOpen, onClose, selectedBatches, o
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider text-[#653660] bg-[#ffd7f5]">
                         {batch.id}
                       </span>
-                      <h3 className="text-[14px] font-bold text-slate-800 mt-1.5">{batch.title}</h3>
+                      <h3 className="text-[14px] font-bold text-slate-800 mt-1.5">{batch.name || batch.title}</h3>
                     </div>
                     <div className="flex flex-col items-end">
                       <div className="flex items-center gap-1 text-slate-500">
